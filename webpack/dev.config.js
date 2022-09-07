@@ -2,7 +2,8 @@ const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-    entry: './src/main.js',
+    entry: {
+        main: './src/main.js'},
     module: {
         rules: [{
                 test: /\.vue$/,
@@ -20,6 +21,10 @@ module.exports = {
                     'vue-style-loader',
                     'css-loader'
                 ]
+            },
+            {
+                test: /\.csv$/,
+                use: ['raw-loader'],
             },
         ]
     },

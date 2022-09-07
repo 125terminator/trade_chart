@@ -1,36 +1,41 @@
 <template>
     <!-- Real time data example -->
-    <span>
+    <div class="trading-vue">
         <trading-vue :data="chart" :width="this.width" :height="this.height"
                 :chart-config="{MIN_ZOOM:1}"
                 ref="tvjs"
                 :toolbar="true"
+                :overlays="overlays"
                 :index-based="index_based"
                 :color-back="colors.colorBack"
                 :color-grid="colors.colorGrid"
                 :color-text="colors.colorText">
         </trading-vue>
-        <span class="gc-mode">
-            <input type="checkbox" v-model="index_based">
-            <label>Index Based</label>
-        </span>
-        <!-- <tf-selector :charts="charts" v-on:selected="on_selected">
-        </tf-selector> -->
-    </span>
+        <tf-selector :charts="tfs" v-on:selected="on_selected">
+        </tf-selector>
+    </div>
     </template>
 
 <script>
-import TradingVue from 'trading-vue-js'
-import TfSelector from 'trading-vue-js'
-import { Utils } from 'trading-vue-js'
-import { HOUR4 } from 'trading-vue-js'
-import { DataCube } from 'trading-vue-js'
+// :timezone="5.5"
+import TradingVue from '../../trading-vue-js'
+import TfSelector from './vues/TFSelector.vue'
+import { Utils } from '../../trading-vue-js'
+// import { HOUR4 } from 'trading-vue-js'
+import { DataCube }  from '../../trading-vue-js'
 import Stream from './Stream.js'
-import { ScriptOverlay } from 'trading-vue-js'
-import { BSB } from 'trading-vue-js'
+import Volume from './vues/Volume.vue'
 import moment from 'moment'
+import Overlays from 'tvjs-overlays'
+
+// import rel from '../data/reliance.csv'
+// var csv = require('jquery-csv')
+// console.log(csv.toArrays(rel))
+
+
 
 import Data from '../data/data.json'
+import state from '../data/state.json'
 
 const WSS = `ws://localhost:13254`
 // Gettin' data through webpeck proxy
@@ -44,52 +49,76 @@ const URL = `http://localhost:8008/api/`
 export default {
     name: 'app',
     components: { TradingVue, TfSelector },
-
     mounted() {
     window.addEventListener('resize', this.onResize)
     this.onResize()
-
     // Load the last data chunk & init DataCube:
-    let now = Utils.now()
-    this.load_chunk([now - HOUR4, now]).then(data => {
-            this.chart = new DataCube({
-                ohlcv: data['chart.data'],
-                type: "Spline",
-                // onchart: [{
-                //     type: 'EMAx6',
-                //     name: 'Multiple EMA',
-                //     data: []
-                // }],
-                // offchart: [{
-                //     type: 'BuySellBalance',
-                //     name: 'Buy/Sell Balance, $lookback',
-                //     data: [],
-                //     settings: {}
-                // }],
-                datasets: [{
-                    type: 'Trades',
-                    id: 'binance-btcusdt',
-                    data: []
-                }]
-            }, { aggregation: 100 })
-            // this.chart.interval_ms = 1e6
-            // Register onrange callback & And a stream of trades
-            this.chart.onrange(this.load_chunk)
-            this.$refs.tvjs.resetChart()
-            console.log(this.$refs.tvjs)
-            console.log(this.$props)
-            // this.stream = new Stream(WSS)
-            // this.stream.ontrades = this.on_trades
-            window.dc = this.chart      // Debug
-            window.tv = this.$refs.tvjs // Debug
-            // this.$refs.tvjs.interval_ms = parseFloat(1e6)
-        })
+    
     },
     methods: {
-        on_selected(tf) {
+        on_selected(tf) {    
+            
+    // let tf=60000
+        this.getState().then(now => {
+            let now_ms = parseFloat(moment(state.now).format('X'))*1000
+        this.load_chunk([now_ms, now_ms], tf).then(data => {
+                this.chart = new DataCube({
+                    chart: {
+                        type: "Candles",
+                        data: data['chart.data'],
+                        tf: 60000,
+                        indexBased: true,
+                        settings: {
+                            showVolume: false,
+                            // colorCandleUp: "#4CAF50",
+                            // colorCandleDw: "#DF514C"
+                        }
+                    },
+                    offchart: [{
+                        name: "Volume",
+                        type: "Volume",
+                        data: data['chart.data'],
+                        settings: {}
+                    },
+                    // {
+                    //     type: 'BuySellBalance',
+                    //     name: 'Buy/Sell Balance, $lookback',
+                    //     data: [],
+                    //     settings: {}
+                    // }
+                ]  ,
+                    // datasets: [{
+                    //     type: 'Trades',
+                    //     id: 'binance-btcusdt',
+                    //     data: []
+                    // }]
+                }
+                )
+                // Register onrange callback & And a stream of trades
+                this.chart.onrange(this.load_chunk)
+                this.$refs.tvjs.resetChart()
+                // this.stream = new Stream(WSS)
+                // this.stream.ontrades = this.on_trades
+                window.dc = this.chart      // Debug
+                window.tv = this.$refs.tvjs // Debug
+            })
+        })
+            // let r = await fetch(URL + q).then(r => r.json())
+            // return this.format(this.parse_binance(r))
+            
+            // called at start
+            // console.log(this.chart)
+            // this.load_chunk([now, now], tf).then(data => {
+            // this.chart
             // this.chart.set('chart.data', this.charts[tf.name])
-            this.$refs.tradingVue.resetChart()
-            this.log_scale = false
+            // this.$refs.tvjs.resetChart()
+            // this.log_scale = false
+            // this.interval = tf.name
+        },
+        async getState() {
+            let q = `state`
+            let r = await fetch(URL + q).then(r => r.json())
+            return r
         },
         onResize(event) {
             this.width = window.innerWidth
@@ -97,10 +126,11 @@ export default {
         },
         // New data handler. Should return Promise, or
         // use callback: load_chunk(range, tf, callback)
-        async load_chunk(range) {
+        async load_chunk(range, tf) {
+            // console.log(tf)
             let [t1, t2] = range
             let x = 'BTCUSDT'
-            let q = `${x}&interval=1m&startTime=${t1}&endTime=${t2}`
+            let q = `?stock=${x}&interval=${tf}&startTime=${t1}&endTime=${t2}`
             // let r = await fetch(URL + q).then(r => r.json())
             // return this.format(this.parse_binance(r))
             let r = await fetch(URL + q).then(r => r.json())
@@ -108,7 +138,6 @@ export default {
         },
         // Parse a specific exchange format
         parse_binance(data) {
-            console.log(data.chart)
             data = data.chart.data
             if (!Array.isArray(data)) return []
             return data.map(x => {
@@ -119,36 +148,32 @@ export default {
             })
         },
         parse_data(e) {
+
             var chartInterval = "10minute"
-            var t = e, a = [], b=[];
-            if (!t || !t.data || !t.data.candles)
-                return a;
-            for (var o = 0; o < t.data.candles.length; o++) {
-                a[o] = {}
+            var t = e.data, a = [], b=[];
+            // if (!t || !t.data || !t)
+            //     return a;
+            for (var o = 0, p=0; o < t.length; o++, p+=60000) {
+                var dt
                 b[o] = {}
                 if ("day" === chartInterval && -330 !== (new Date).getTimezoneOffset()) {
-                    var n = t.data.candles[o][0];
-                    a[o].DT = moment(n.substr(0, n.indexOf("+"))).toDate()
+                    var n = t[o].index;
+                    dt = moment(n.substr(0, n.indexOf("+"))).toDate()
                 } else 
-                    a[o].DT = moment(t.data.candles[o][0]).toDate();
-                a[o].Open = parseFloat(trimString(t.data.candles[o][1])),
-                a[o].High = parseFloat(trimString(t.data.candles[o][2])),
-                a[o].Low = parseFloat(trimString(t.data.candles[o][3])),
-                a[o].Close = parseFloat(trimString(t.data.candles[o][4])),
-                a[o].Volume = parseFloat(trimString(t.data.candles[o][5])),
-                a[o].OI = parseFloat(trimString(t.data.candles[o][6]))
-                b[o] = [parseFloat(moment(a[o].DT).format('X')), a[o].Open, a[o].High, a[o].Low, a[o].Close, a[o].Volume]
+                    dt = moment(t[o].index).toDate();
+
+                var oo = parseFloat(moment(dt).format('X'))*1000
+                var vol = t[o].Volume/1000
+                b[o] = [oo, t[o].Open, t[o].High, t[o].Low, t[o].Close, vol]
                 }
-            // return a.sort((function(e, t) {
-            //     return e.DT.getTime() - t.DT.getTime()
-            // }
-            // )), a
             return b
     },
         format(data) {
+            // console.log(data)
             // Each query sets data to a corresponding overlay
             return {
-                'chart.data': data
+                'chart.data': data,
+                'offchart.Volume0.data': data,
                 // other onchart/offchart overlays can be added here,
                 // but we are using Script Engine to calculate some:
                 // see EMAx6 & BuySellBalance
@@ -167,17 +192,19 @@ export default {
                 // ],
                 // ... other onchart/offchart updates
             })
-        }
+        },
+        getJson() {
+        },
+        
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.onResize)
     },
     data() {
         return {
-            chart: {
-                type: "Spline"
-            },
-            chart: new DataCube({}),
+            chart1: Data,
+            chart: {},
+            tfs: {'1m': {}, '2m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {}},
             width: window.innerWidth,
             height: window.innerHeight,
             colors: {
@@ -186,16 +213,15 @@ export default {
                 colorText: '#333',
             },
             index_based: false,
-            overlays: [ScriptOverlay, BSB],
-            type: "Spline"
+            overlays: [Volume, Overlays['VWMA']],
+            timezone: 0,
+            interval: '10m'
         }
     }
 }
 
-function trimString(e) {
-    return String(e).replace(/^\s+|\s+$/g, "")
-}
 </script>
+<style>
+</style>
 
-
-<!-- https://github.com/tvjsx/trading-vue-js/blob/e881bdb5c3ec3b890d21e3059cb6b3ef85a47432/docs/guide/OVERLAYS.md -->
+<!-- https://github.com/tvjsx/'trading-vue-js'/blob/e881bdb5c3ec3b890d21e3059cb6b3ef85a47432/docs/guide/OVERLAYS.md -->

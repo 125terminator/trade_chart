@@ -15,17 +15,21 @@
         "babel-loader": "^8.1.0",
         "css-loader": "^5.0.0",
         "html-webpack-plugin": "^4.5.0",
+        "raw-loader": "^4.0.2",
         "request": "^2.88.2",
         "tulind": "^0.8.18",
         "vue-loader": "^15.9.3",
         "vue-style-loader": "^4.1.2",
-        "vue-template-compiler": "^2.6.12",
+        "vue-template-compiler": "^2.7.10",
         "webpack": "^5.1.2",
         "webpack-cli": "^4.10.0",
         "webpack-dev-server": "^4.10.0"
     },
     "dependencies": {
+        "jquery-csv": "^1.0.21",
         "trading-vue-js": "^1.0.0",
-        "vue": "^2.6.12"
+        "tvjs-overlays": "^0.5.0",
+        "tvjs-xp": "^0.3.0",
+        "vue": "^2.7.10"
     }
 }

@@ -1,47 +1,55 @@
+from calendar import month
 from http.server import BaseHTTPRequestHandler, HTTPServer
-# import SocketServer
+from urllib.parse import urlparse, parse_qs
+import datetime
 import json
-import cgi
-import time
+import pandas as pd
 
+from OHLC import OHLC
+def between_time(df, start, end):
+    # if string convert to pd.to_datetime("2015-03-02T09:17:00")
+    return df[(df.index >= start) & (df.index <= end)]
+
+ohlc = OHLC('../../data/reliance.csv', clean=False)
+
+interval_dict = {
+    "10m": 10,
+    "15m": 15,
+    "1H": 60
+}
 class Server(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        
-    # def do_HEAD(self):
-        self._set_headers()
-        
     # GET sends back a Hello world message
-    def do_GET(self):
+    def _set_headers(self):
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.send_header("access-control-allow-origin", "*")
         self.end_headers()
-        # self._set_headers()
-        self.wfile.write(json.dumps(json.load(open('../../data/sbin-08-22.json', 'r'))).encode())
-        
-    # POST echoes the message adding a JSON field
-    # def do_POST(self):
-        # ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-        
-        # # refuse to receive non-json content
-        # if ctype != 'application/json':
-        #     self.send_response(400)
-        #     self.end_headers()
-        #     return
-            
-        # # read the message and convert it into a python dictionary
-        # length = int(self.headers.getheader('content-length'))
-        # message = json.loads(self.rfile.read(length))
-        
-        # # add a property to the object, just to mess with data
-        # message['received'] = 'ok'
-        
-        # # send the message back
-        # self._set_headers()
-        # self.wfile.write(json.dumps(message))
+
+    def do_GET(self):
+        params = parse_qs(urlparse(self.path).query)
+        if self.path == '/api/state' :
+            return self.stateHandler()
+        if 'stock' not in params:
+            return
+        # print('new req with params', params)
+        # startTime = datetime.datetime.fromtimestamp(int(params['startTime'][0])/1000.0)
+        endTime = datetime.datetime.fromtimestamp(int(params['endTime'][0])/1000.0)
+        startTime = endTime - datetime.timedelta(days=5)
+
+        print(startTime, endTime)
+        print(params['interval'][0])
+        interval = int(params['interval'][0])//6000
+        # interval = interval_dict[params['interval'][0]]
+        data = ohlc.toInterval(interval)
+        data = between_time(data, startTime, endTime).to_json(orient='table')
+        data = json.loads(data)
+        self._set_headers()
+        # self.wfile.write(json.dumps(json.load(open('../../data/sbin-08-22.json', 'r'))).encode())
+        self.wfile.write(json.dumps(data).encode())
+    
+    def stateHandler(self):
+        self._set_headers()
+        self.wfile.write(json.dumps(json.load(open('../../data/state.json', 'r'))).encode())
         
 def run(server_class=HTTPServer, handler_class=Server, port=8008):
     server_address = ('', port)

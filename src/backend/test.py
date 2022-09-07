@@ -1,21 +1,26 @@
-# import json
-# from time import sleep
-# f = open('../../data/data.json', 'r')
-# a = json.load(f)
-# start, o, h, l, c, v = a['chart']['data'][-1]
-# f.close()
-# for i in range(100):
-#     sleep(1)
-#     start = start + 1e6
-#     o+=5
-#     h+=5
-#     l+=5
-#     c+=5
-#     v+=5
-#     data = {"candle": "[{},{},{},{},{},{}]".format(start, o, h, l, c, v)}
-#     print(data['candle'])
+from OHLC import OHLC
+from pandas.tseries.frequencies import to_offset
+import pandas as pd
+import numpy as np
+import pickle
 
+# pd.to_datetime("2022-09-06 01:43:06.115000")
+# print(pd.DatetimeIndex([pd.to_datetime("2015-04-09T15:29:00+0530")]).astype(np.int64))
+# o = OHLC('../../data/reliance.csv')
+# ohlc = OHLC('../../data/reliance.csv', clean=False)
+# with open('ohlc.pkl', 'wb') as f:
+#     pickle.dump(ohlc, f, -1)
 
-import datetime
-ms = 1554185600000.0
-print(datetime.datetime.fromtimestamp(ms/1000.0))
+# with open('ohlc.pkl', 'rb') as f:
+#     ohlc = pickle.load(f)
+#     print(ohlc.df)
+
+# mins = 2
+# df = o.toInterval(mins)
+# # print(df.ge("2022-09-06 01:43:06.115000", axis='index'))
+
+# # print(df.index.ge(pd.to_datetime("2015-03-02T09:17:00.115000")))
+# print((df.index >= pd.to_datetime("2015-03-02T09:17:00.115000")) & (df.index <= pd.to_datetime("2015-03-02T09:22:00")))
+
+1662408786115
+1428573540000
