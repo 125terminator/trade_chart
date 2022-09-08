@@ -6,17 +6,10 @@ import json
 import pandas as pd
 
 from OHLC import OHLC
-def between_time(df, start, end):
-    # if string convert to pd.to_datetime("2015-03-02T09:17:00")
-    return df[(df.index >= start) & (df.index <= end)]
+from utils import *
 
 ohlc = OHLC('../../data/reliance.csv', clean=False)
 
-interval_dict = {
-    "10m": 10,
-    "15m": 15,
-    "1H": 60
-}
 class Server(BaseHTTPRequestHandler):
     # GET sends back a Hello world message
     def _set_headers(self):
@@ -49,7 +42,7 @@ class Server(BaseHTTPRequestHandler):
     
     def stateHandler(self):
         self._set_headers()
-        self.wfile.write(json.dumps(json.load(open('../../data/state.json', 'r'))).encode())
+        self.wfile.write(json.dumps(get_state()).encode())
         
 def run(server_class=HTTPServer, handler_class=Server, port=8008):
     server_address = ('', port)

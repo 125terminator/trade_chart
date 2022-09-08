@@ -44,8 +44,8 @@ export default {
     },
     data() {
         return {
-            tf: "10m",
-            selected: 3,
+            tf: "1m",
+            selected: 0,
             myStyle:{
             backgroundColor:"#ffffff" 
             }

@@ -1,30 +1,34 @@
 import logging
 from websocket_server import WebsocketServer
 from random import randrange
-import time
 import datetime
+from time import sleep
+import datetime
+from dateutil import parser
 
-def rn():
-	return randrange(-20, 20)
+import pandas as pd
+
+from OHLC import OHLC
+from utils import *
+
+ohlc = OHLC('../../data/reliance.csv', clean=False)
+
 def new_client(client, server):
 	print("new client connected")
-	import json
-	from time import sleep
-	f = open('../../data/sbin-08-22.json', 'r')
-	a = json.load(f)
-	start, o, h, l, c, v = a['data']['candles'][-1]
-	f.close()
+	df = ohlc.df
+	state = get_state()
+	startTime = parser.parse(state['now'], ignoretz=True)
+	ind = greater_equal_index(df, startTime)
 	for i in range(100000):
 		sleep(1)
-		start = start + 1e6
-		o+=rn()
-		h+=rn()
-		l+=rn()
-		c+=rn()
-		v+=randrange(20)
-		data = "[{},{},{},{},{},{}]".format(start, o, h, l, c, v)
-		server.send_message_to_all(data)
-		print(datetime.datetime.fromtimestamp(start/1000.0), data)
+		start = df.index[ind].tz_localize('Asia/Kolkata')
+		o, h, l, c, v = df.iloc[ind]
+		data = '["{}",{},{},{},{},{}]'.format(start, o, h, l, c, v)
+		server.send_message(client, data)
+		state['now'] = f'{start}'
+		push_state(state)
+		ind += 1
+		print(data)
 
 server = WebsocketServer(host='127.0.0.1', port=13254, loglevel=logging.INFO)
 server.set_fn_new_client(new_client)

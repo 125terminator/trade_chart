@@ -35,9 +35,8 @@ import Overlays from 'tvjs-overlays'
 
 
 import Data from '../data/data.json'
-import state from '../data/state.json'
 
-const WSS = `ws://localhost:13254`
+const WSS = `ws://localhost:13254/`
 // Gettin' data through webpeck proxy
 const PORT = location.port
 // const URL = `http://localhost:${PORT}/api/v1/klines?symbol=`
@@ -56,23 +55,22 @@ export default {
     
     },
     methods: {
-        on_selected(tf) {    
-            
+        on_selected(tf) { 
     // let tf=60000
-        this.getState().then(now => {
+        this.getState().then(state => {
             let now_ms = parseFloat(moment(state.now).format('X'))*1000
         this.load_chunk([now_ms, now_ms], tf).then(data => {
                 this.chart = new DataCube({
                     chart: {
                         type: "Candles",
                         data: data['chart.data'],
-                        tf: 60000,
+                        tf: tf,
                         indexBased: true,
                         settings: {
                             showVolume: false,
                             // colorCandleUp: "#4CAF50",
                             // colorCandleDw: "#DF514C"
-                        }
+                        },
                     },
                     offchart: [{
                         name: "Volume",
@@ -92,15 +90,27 @@ export default {
                     //     id: 'binance-btcusdt',
                     //     data: []
                     // }]
-                }
+                }, { auto_scroll: false }
                 )
                 // Register onrange callback & And a stream of trades
                 this.chart.onrange(this.load_chunk)
                 this.$refs.tvjs.resetChart()
-                // this.stream = new Stream(WSS)
-                // this.stream.ontrades = this.on_trades
+                this.stream = new Stream(WSS)
+                this.stream.ontrades = this.on_trades
                 window.dc = this.chart      // Debug
                 window.tv = this.$refs.tvjs // Debug
+
+                console.log(this.$refs.tvjs)
+                // if (this.$refs.tvjs.cursor.locked) return
+                // let last = this.chart.last_candle
+                
+                // if (!last) return
+                // let tl = last[0]
+                // let d = this.$regs.tvjs.getRange()[1] - tl
+                // if (d > 0) {
+                //     console.log("gone")
+                //     this.tv.goto(t + d)
+                // }
             })
         })
             // let r = await fetch(URL + q).then(r => r.json())
@@ -162,7 +172,7 @@ export default {
                 } else 
                     dt = moment(t[o].index).toDate();
 
-                var oo = parseFloat(moment(dt).format('X'))*1000
+                let oo = parseFloat(moment(dt).format('X'))*1000
                 var vol = t[o].Volume/1000
                 b[o] = [oo, t[o].Open, t[o].High, t[o].Low, t[o].Close, vol]
                 }
@@ -180,18 +190,18 @@ export default {
             }
         },
         on_trades(trade) {
+            // console.log(this.$refs.tvjs.getRange())
+            trade[0] = parseFloat(moment(trade[0]).format('X'))*1000 + 19800000
+            trade[5] = trade[5]/1000
             this.chart.update({
-                t: trade[0],     // Exchange time (optional)
-                price: parseFloat(trade[1]),   // Trade price
-                volume: parseFloat(5),  // Trade amount
-                // 'datasets.binance-btcusdt': [ // Update dataset
-                //     trade.T,
-                //     trade.m ? 0 : 1,          // Sell or Buy
-                //     parseFloat(trade.q),
-                //     parseFloat(trade.p)
-                // ],
-                // ... other onchart/offchart updates
+                candle: trade,
             })
+            let d = window.tv.getRange()[1] - trade[0]
+            // console.log(d)
+            if (d > -600000) {
+            window.tv.goto(trade[0])
+            }
+            
         },
         getJson() {
         },
@@ -215,7 +225,7 @@ export default {
             index_based: false,
             overlays: [Volume, Overlays['VWMA']],
             timezone: 0,
-            interval: '10m'
+            stream: undefined,
         }
     }
 }
