@@ -1,39 +1,27 @@
-import logging
-from websocket_server import WebsocketServer
-from random import randrange
-import datetime
-from time import sleep
-import datetime
-from dateutil import parser
-
-import pandas as pd
+import asyncio
+import time
+import threading
 
 from OHLC import OHLC
-from utils import *
+from serverWs import run as runWs
+from serverHttp import run as runHttp
+from DB import User, Date
 
 ohlc = OHLC('../../data/reliance.csv', clean=False)
+db = {}
+db['user'] = User()
+db['date'] = Date()
 
-def new_client(client, server):
-	print("new client connected")
-	df = ohlc.df
-	state = get_state()
-	startTime = parser.parse(state['now'], ignoretz=True)
-	ind = greater_equal_index(df, startTime)
-	for i in range(100000):
-		sleep(1)
-		start = df.index[ind].tz_localize('Asia/Kolkata')
-		o, h, l, c, v = df.iloc[ind]
-		data = '["{}",{},{},{},{},{}]'.format(start, o, h, l, c, v)
-		server.send_message(client, data)
-		state['now'] = f'{start}'
-		# push_state(state)
-		ind += 1
-		print(data)
+t1 = threading.Thread(target=runWs, args=(ohlc, db, ))
+t2 = threading.Thread(target=runHttp, args=(ohlc, db, ))
+t1.start()
+t2.start()
+try:
+    t1.join()
+except:
+    print('keyboard ctrl-c')
 
-server = WebsocketServer(host='127.0.0.1', port=13254, loglevel=logging.INFO)
-server.set_fn_new_client(new_client)
-server.run_forever()
-
-
-
-# https://github.com/Pithikos/python-websocket-server
+try:
+    t2.join()
+except:
+    print('keyboard ctrl-c')

@@ -1,6 +1,6 @@
 <template>
-    <Buy />
-    <!-- <div class="trading-vue">
+    <!-- <Buy /> -->
+    <div class="trading-vue">
         <trading-vue :data="chart" :width="this.width" :height="this.height"
                 :chart-config="{MIN_ZOOM:1}"
                 ref="tvjs"
@@ -16,7 +16,7 @@
         </tf-selector>
         
   
-    </div> -->
+    </div>
     </template>
 
 <script>
@@ -182,6 +182,8 @@ export default {
             }
         },
         on_trades(trade) {
+            this.myDate = trade[0]
+            this.myPrice = trade[1]
             // console.log(this.$refs.tvjs.getRange())
             trade[0] = parseFloat(moment(trade[0]).format('X'))*1000 + 19800000
             trade[5] = trade[5]/1000
@@ -218,6 +220,8 @@ export default {
             overlays: [Volume, LineTool],
             timezone: 0,
             stream: undefined,
+            myPrice: 0,
+            myDate: "",
         }
     }
 }

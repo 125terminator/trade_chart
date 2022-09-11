@@ -8,8 +8,9 @@ import pandas as pd
 from OHLC import OHLC
 from utils import *
 
-ohlc = OHLC('../../data/reliance.csv', clean=False)
-
+# ohlc = OHLC('../../data/reliance.csv', clean=False)
+ohlc = None
+db = None
 
 
 class Server(BaseHTTPRequestHandler):
@@ -24,17 +25,22 @@ class Server(BaseHTTPRequestHandler):
     def do_POST(self): 
         content_len = int(self.headers.get('Content-Length'))
         post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
+
         if self.path == "/api/buy":
             self.buyStockHandler(post_body)
+        if self.path == "/api/sell":
+            self.sellStockHandler(post_body)
 
     def buyStockHandler(self, body):
         self._set_headers()
-        quantity = int(body)
+        db['user'].buy(body)
+        print(json.dumps(db['user'].transactions, indent=4))
     
     def sellStockHandler(self, body):
         self._set_headers()
-        quantity = int(body)
-
+        db['user'].sell(body)
+        print(json.dumps(db['user'].transactions, indent=4))
 
     def getStockHandler(self, params):
         # print('new req with params', params)
@@ -42,8 +48,8 @@ class Server(BaseHTTPRequestHandler):
         endTime = datetime.datetime.fromtimestamp(int(params['endTime'][0])/1000.0)
         startTime = endTime - datetime.timedelta(days=5)
 
-        print(startTime, endTime)
-        print(params['interval'][0])
+        # print(startTime, endTime)
+        # print(params['interval'][0])
         interval = int(params['interval'][0])//6000
         # interval = interval_dict[params['interval'][0]]
         data = ohlc.toInterval(interval)
@@ -55,7 +61,7 @@ class Server(BaseHTTPRequestHandler):
     
     def stateHandler(self):
         self._set_headers()
-        self.wfile.write(json.dumps(get_state()).encode())
+        self.wfile.write(json.dumps(db['date'].get()).encode())
 
     def _set_headers(self):
         self.send_response(200)
@@ -63,7 +69,10 @@ class Server(BaseHTTPRequestHandler):
         self.send_header("access-control-allow-origin", "*")
         self.end_headers()
         
-def run(server_class=HTTPServer, handler_class=Server, port=8008):
+def run(_ohlc, _db, server_class=HTTPServer, handler_class=Server, port=8008):
+    global ohlc, db
+    ohlc = _ohlc
+    db = _db
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     try:
@@ -74,11 +83,10 @@ def run(server_class=HTTPServer, handler_class=Server, port=8008):
 
     httpd.server_close()
     
-# if __name__ == "__main__":
-#     from sys import argv
+if __name__ == "__main__":
+    from sys import argv
     
-#     if len(argv) == 2:
-#         run(port=int(argv[1]))
-#     else:
-#         run()
-run()
+    if len(argv) == 2:
+        run(port=int(argv[1]))
+    else:
+        run()

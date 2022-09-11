@@ -1,0 +1,2 @@
+INTRADAY = "intraday"
+CASHNCARRY = "cnc"
