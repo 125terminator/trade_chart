@@ -1,6 +1,6 @@
 <template>
-    <!-- Real time data example -->
-    <div class="trading-vue">
+    <Buy />
+    <!-- <div class="trading-vue">
         <trading-vue :data="chart" :width="this.width" :height="this.height"
                 :chart-config="{MIN_ZOOM:1}"
                 ref="tvjs"
@@ -11,9 +11,12 @@
                 :color-grid="colors.colorGrid"
                 :color-text="colors.colorText">
         </trading-vue>
+        <Buy />
         <tf-selector :charts="tfs" v-on:selected="on_selected">
         </tf-selector>
-    </div>
+        
+  
+    </div> -->
     </template>
 
 <script>
@@ -27,6 +30,11 @@ import Stream from './Stream.js'
 import Volume from './vues/Volume.vue'
 import moment from 'moment'
 import Overlays from 'tvjs-overlays'
+import LineTool from './vues/LineTool.vue'
+import Buy from './vues/Buy.vue'
+
+
+import * as Const from './js/const.js'
 
 // import rel from '../data/reliance.csv'
 // var csv = require('jquery-csv')
@@ -36,18 +44,13 @@ import Overlays from 'tvjs-overlays'
 
 import Data from '../data/data.json'
 
-const WSS = `ws://localhost:13254/`
-// Gettin' data through webpeck proxy
-const PORT = location.port
-// const URL = `http://localhost:${PORT}/api/v1/klines?symbol=`
-// const WSS = `ws://localhost:${PORT}/ws/btcusdt@aggTrade`
-const URL = `http://localhost:8008/api/`
+
 // var a = new WebSocket(WSS)
 // a.close()
 
 export default {
     name: 'app',
-    components: { TradingVue, TfSelector },
+    components: { TradingVue, TfSelector, LineTool, Buy },
     mounted() {
     window.addEventListener('resize', this.onResize)
     this.onResize()
@@ -95,7 +98,7 @@ export default {
                 // Register onrange callback & And a stream of trades
                 this.chart.onrange(this.load_chunk)
                 this.$refs.tvjs.resetChart()
-                this.stream = new Stream(WSS)
+                this.stream = new Stream(Const.WSS)
                 this.stream.ontrades = this.on_trades
                 window.dc = this.chart      // Debug
                 window.tv = this.$refs.tvjs // Debug
@@ -113,21 +116,10 @@ export default {
                 // }
             })
         })
-            // let r = await fetch(URL + q).then(r => r.json())
-            // return this.format(this.parse_binance(r))
-            
-            // called at start
-            // console.log(this.chart)
-            // this.load_chunk([now, now], tf).then(data => {
-            // this.chart
-            // this.chart.set('chart.data', this.charts[tf.name])
-            // this.$refs.tvjs.resetChart()
-            // this.log_scale = false
-            // this.interval = tf.name
         },
         async getState() {
             let q = `state`
-            let r = await fetch(URL + q).then(r => r.json())
+            let r = await fetch(Const.URL + q).then(r => r.json())
             return r
         },
         onResize(event) {
@@ -143,7 +135,7 @@ export default {
             let q = `?stock=${x}&interval=${tf}&startTime=${t1}&endTime=${t2}`
             // let r = await fetch(URL + q).then(r => r.json())
             // return this.format(this.parse_binance(r))
-            let r = await fetch(URL + q).then(r => r.json())
+            let r = await fetch(Const.URL + q).then(r => r.json())
             return this.format(this.parse_data(r))
         },
         // Parse a specific exchange format
@@ -223,7 +215,7 @@ export default {
                 colorText: '#333',
             },
             index_based: false,
-            overlays: [Volume, Overlays['VWMA']],
+            overlays: [Volume, LineTool],
             timezone: 0,
             stream: undefined,
         }

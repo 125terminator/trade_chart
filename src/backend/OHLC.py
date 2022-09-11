@@ -30,6 +30,7 @@ class OHLC:
             assert self.eachDayRows*self.days == self.df.shape[0]
 
         self.df.set_index('Date', inplace=True) 
+        # self.df.sort_index(inplace=True)
         
         # Remove timezone from timestamp
         self.df.index = [i.replace(tzinfo=None) for i in self.df.index]

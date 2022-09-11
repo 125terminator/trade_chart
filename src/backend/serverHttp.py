@@ -10,20 +10,33 @@ from utils import *
 
 ohlc = OHLC('../../data/reliance.csv', clean=False)
 
-class Server(BaseHTTPRequestHandler):
-    # GET sends back a Hello world message
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header("Content-type", "application/json")
-        self.send_header("access-control-allow-origin", "*")
-        self.end_headers()
 
+
+class Server(BaseHTTPRequestHandler):
     def do_GET(self):
         params = parse_qs(urlparse(self.path).query)
+
         if self.path == '/api/state' :
             return self.stateHandler()
-        if 'stock' not in params:
-            return
+        if 'stock' in params:
+            self.getStockHandler(params=params)
+    
+    def do_POST(self): 
+        content_len = int(self.headers.get('Content-Length'))
+        post_body = self.rfile.read(content_len)
+        if self.path == "/api/buy":
+            self.buyStockHandler(post_body)
+
+    def buyStockHandler(self, body):
+        self._set_headers()
+        quantity = int(body)
+    
+    def sellStockHandler(self, body):
+        self._set_headers()
+        quantity = int(body)
+
+
+    def getStockHandler(self, params):
         # print('new req with params', params)
         # startTime = datetime.datetime.fromtimestamp(int(params['startTime'][0])/1000.0)
         endTime = datetime.datetime.fromtimestamp(int(params['endTime'][0])/1000.0)
@@ -43,6 +56,12 @@ class Server(BaseHTTPRequestHandler):
     def stateHandler(self):
         self._set_headers()
         self.wfile.write(json.dumps(get_state()).encode())
+
+    def _set_headers(self):
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("access-control-allow-origin", "*")
+        self.end_headers()
         
 def run(server_class=HTTPServer, handler_class=Server, port=8008):
     server_address = ('', port)

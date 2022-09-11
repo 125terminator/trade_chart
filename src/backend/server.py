@@ -26,7 +26,7 @@ def new_client(client, server):
 		data = '["{}",{},{},{},{},{}]'.format(start, o, h, l, c, v)
 		server.send_message(client, data)
 		state['now'] = f'{start}'
-		push_state(state)
+		# push_state(state)
 		ind += 1
 		print(data)
 

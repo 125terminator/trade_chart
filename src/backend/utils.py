@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-statePath = '../../data/state.json'
+statePath = '../../data/date.json'
 def get_state():
     return json.load(open(statePath, 'r'))
 
