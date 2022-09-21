@@ -63,13 +63,9 @@ export default {
         },
         colorVolUp() {
             return "#4CAF50"
-            return this.sett.colorVolUp ||
-            this.$props.colors.volUp
         },
         colorVolDw() {
             return "#DF514C"
-            return this.sett.colorVolDw ||
-            this.$props.colors.volDw
         },
         colorVolUpLegend() {
             return this.sett.colorVolUpLegend ||
@@ -81,9 +77,6 @@ export default {
         },
         volscale() {
             return 0.85
-            return this.sett.volscale ||
-            this.$props.grid_id > 0 ? 0.85 :
-            this.$props.config.VOLSCALE
         },
     },
     data() {

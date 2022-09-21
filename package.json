@@ -1,35 +1,38 @@
 {
-    "name": "trading-vue-101",
-    "version": "1.0.0",
-    "description": "Example project for trading-vue-js",
-    "main": "src/main.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "webpack serve --config webpack/dev.config.js --mode development --progress --hot"
-    },
-    "author": "C451",
-    "license": "ISC",
-    "devDependencies": {
-        "@babel/core": "^7.12.1",
-        "@babel/preset-env": "^7.12.1",
-        "babel-loader": "^8.1.0",
-        "css-loader": "^5.0.0",
-        "html-webpack-plugin": "^4.5.0",
-        "raw-loader": "^4.0.2",
-        "request": "^2.88.2",
-        "tulind": "^0.8.18",
-        "vue-loader": "^15.9.3",
-        "vue-style-loader": "^4.1.2",
-        "vue-template-compiler": "^2.7.10",
-        "webpack": "^5.1.2",
-        "webpack-cli": "^4.10.0",
-        "webpack-dev-server": "^4.10.0"
-    },
-    "dependencies": {
-        "jquery-csv": "^1.0.21",
-        "trading-vue-js": "^1.0.0",
-        "tvjs-overlays": "^0.5.0",
-        "tvjs-xp": "^0.3.0",
-        "vue": "^2.7.10"
+  "name": "vue",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@vue/cli-plugin-babel": "4.1.1",
+    "trading-vue-js": "^1.0.0",
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "4.1.1",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.0.1",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
     }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
+  "keywords": [
+    "vue",
+    "vuejs",
+    "starter"
+  ],
+  "description": "Vue.js example starter project"
 }

@@ -43,15 +43,11 @@ class Server(BaseHTTPRequestHandler):
         print(json.dumps(db['user'].transactions, indent=4))
 
     def getStockHandler(self, params):
-        # print('new req with params', params)
-        # startTime = datetime.datetime.fromtimestamp(int(params['startTime'][0])/1000.0)
         endTime = datetime.datetime.fromtimestamp(int(params['endTime'][0])/1000.0)
         startTime = endTime - datetime.timedelta(days=5)
 
         # print(startTime, endTime)
-        # print(params['interval'][0])
-        interval = int(params['interval'][0])//6000
-        # interval = interval_dict[params['interval'][0]]
+        interval = int(params['interval'][0])//6000 # convert ms to seconds
         data = ohlc.toInterval(interval)
         data = between_time(data, startTime, endTime).to_json(orient='table')
         data = json.loads(data)

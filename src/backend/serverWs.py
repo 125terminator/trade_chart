@@ -20,7 +20,7 @@ def new_client(client, server):
 	startTime = parser.parse(db['date'].now, ignoretz=True)
 	ind = greater_equal_index(df, startTime)
 	for i in range(100000):
-		sleep(3)
+		sleep(1)
 		start = df.index[ind].tz_localize('Asia/Kolkata')
 		o, h, l, c, v = df.iloc[ind]
 		data = '["{}",{},{},{},{},{}]'.format(start, o, h, l, c, v)

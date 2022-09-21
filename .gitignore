@@ -1,5 +1,5 @@
-node_modules/
 __pycache__/
 *.py[cod]
 .DS_Store
-data/.DS_Store
+data/.DS_Store%
+node_modules

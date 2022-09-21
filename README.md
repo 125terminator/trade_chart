@@ -6,4 +6,4 @@ Install:
 
 Run
 
-`npm run dev`
+`npm run serve`

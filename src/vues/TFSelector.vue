@@ -1,9 +1,9 @@
 <template>
 <!-- Timeframe Selector -->
-<div class="tf-selector" :style="myStyle">
-    <span class="timeframe" v-for="(tf, i) in this.timeframes"
+<div class="tf-selector">
+    <span class="timeframe" :key="i" v-for="(tf, i) in this.timeframes"
         v-on:click="on_click(tf, i)"
-        v-bind:style= "selected === i ? {color: '#f00'} : {}">
+        v-bind:style= "selected === i ? {color: '#f00'} : {color: '#000'}">
         {{tf}}
     </span>
     <!-- <select v-model="selected">
