@@ -105,7 +105,7 @@ export default {
               this.chart.onrange(this.load_chunk)
               this.$refs.tvjs.resetChart()
               // this.stream = new Stream(Const.WSS)
-              // this.stream.ontrades = this.on_trades
+              this.stream.ontrades = this.on_trades
               window.dc = this.chart      // Debug
               window.tv = this.$refs.tvjs // Debug
           })
@@ -175,7 +175,9 @@ export default {
               // see EMAx6 & BuySellBalance
           }
       },
-      on_trades(trade) {
+      on_trades(data) {
+          var trade = data.live
+          console.log(data.holdings)
           this.myDate = trade[0]
           this.myPrice = trade[1]
           // console.log(this.$refs.tvjs.getRange())
@@ -213,7 +215,7 @@ export default {
           index_based: false,
           overlays: [Volume],
           timezone: 0,
-          // stream: new Stream(Const.WSS),
+          stream: new Stream(Const.WSS),
           myPrice: 0,
           myDate: "",
       }

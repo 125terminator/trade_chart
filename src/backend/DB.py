@@ -7,6 +7,7 @@ from typing import final
 from numpy import fromfile
 
 from const import *
+from utils import Stock
 
 mutex = Lock()
 
@@ -60,19 +61,57 @@ class User(DB):
     def __init__(self):
         super().__init__('../../data/user.json')
         self.data = {'buy': [], 'sell': []}
+        self.bought = {'cnc': Stock(), 'intraday': Stock()} 
+        # cnc is not allowed for short selling
+        self.sold = {'cnc': Stock(), 'intraday': Stock()}
+        self.pAndL = 0
+        # Instrument	Qty.	Avg.	cost	Cur. val	P&L	Net chg.
 
     def buy(self, data):
         self.data['buy'].append(data)
+
+        op = 'intraday' if data['intraday'] else 'cnc'     
+        buy_stock = Stock(price=data['price'], qty=data['qty'])
+
+        self.pAndL += self.sold[op].square_off(buy_stock)
+        self.bought[op].avg(buy_stock)
+        # if op == 'intraday':
+        #     self.pAndL += self.sold[op].square_off(buy_stock)
+        #     self.bought[op].avg(buy_stock)
+        # elif op == 'cnc':
+        #     self.bought[op].avg(buy_stock)
     
     def sell(self, data):
         self.data['sell'].append(data)
 
+        op = 'intraday' if data['intraday'] else 'cnc'
+        sell_stock = Stock(price=data['price'], qty=data['qty'])
+        
+        self.pAndL += self.bought[op].square_off(sell_stock)
+        self.sold[op].avg(sell_stock)
+        # if op == 'intraday':
+        #     self.pAndL += self.bought[op].square_off(sell_stock)
+        #     self.sold[op].avg(sell_stock)
+        # elif op == 'cnc':
+        #     if sell_stock.qty <= self.bought[op].qty:
+        #         self.pAndL += self.bought[op].square_off(sell_stock)
+        #     else:
+                # pass # cnc short selling not allowed
+
     @property
     def transactions(self):
-        return self.data
+        return {"sold": str(self.sold), "bought": str(self.bought)}
 
 if __name__ == "__main__":
     o = User()
-    o.buy(INTRADAY, 100, "10:05", 102)
-    print(o.data)
+    # o.buy({"price": 2,"qty": 9,"intraday": False})
+    o.buy({"price": 1,"qty": 20,"intraday": True})
+    # print(o.bought)
+
+    o.sell({"price": 2,"qty": 10,"intraday": True})
+    o.sell({"price": 3,"qty": 20,"intraday": True})
+    print(o.sold)
+    print(o.bought)
+    print(o.pAndL)
+    print(o.transactions)
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.searchsorted.html

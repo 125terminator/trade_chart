@@ -5,6 +5,8 @@ import datetime
 from time import sleep
 import datetime
 from dateutil import parser
+import threading
+import json
 
 import pandas as pd
 
@@ -13,30 +15,49 @@ from utils import *
 
 ohlc = None
 db = None
+clients = None
+
 
 def new_client(client, server):
-	# print("new client connected")
+	global clients
+	clients = client
+
+def client_left(client, server):
+	global clients
+	clients = None
+
+def read(client, server, message):
+	pass
+
+def stream(server):
+	global clients
 	df = ohlc.df
 	startTime = parser.parse(db['date'].now, ignoretz=True)
 	ind = greater_equal_index(df, startTime)
-	for i in range(100000):
+	while True:
 		sleep(1)
+		if clients == None:
+			continue
+			
 		start = df.index[ind].tz_localize('Asia/Kolkata')
 		o, h, l, c, v = df.iloc[ind]
-		data = '["{}",{},{},{},{},{}]'.format(start, o, h, l, c, v)
-		server.send_message(client, data)
+		data = {'live': [str(start), o, h, l, c, v], 'holdings': db['user'].transactions}
+		server.send_message(clients, json.dumps(data))
 		db['date'].set(f'{start}')
-		# push_state(state)
 		ind += 1
-		# print(data)
 
 def run(_ohlc, _db):
-	global ohlc, db
+	global ohlc, db, clients
 	ohlc = _ohlc
 	db = _db
 
+
 	server = WebsocketServer(host='127.0.0.1', port=13254, loglevel=logging.INFO)
 	server.set_fn_new_client(new_client)
+	server.set_fn_client_left(client_left)
+	server.set_fn_message_received(read)
+	t1 = threading.Thread(target=stream, args=(server, ))
+	t1.start()
 	server.run_forever()
 
 

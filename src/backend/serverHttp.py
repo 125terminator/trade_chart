@@ -17,6 +17,8 @@ class Server(BaseHTTPRequestHandler):
     def do_GET(self):
         params = parse_qs(urlparse(self.path).query)
 
+        if self.path == "/api/holdings":
+            return self.holdingsHandler()
         if self.path == '/api/state' :
             return self.stateHandler()
         if 'stock' in params:
@@ -58,6 +60,10 @@ class Server(BaseHTTPRequestHandler):
     def stateHandler(self):
         self._set_headers()
         self.wfile.write(json.dumps(db['date'].get()).encode())
+
+    def holdingsHandler(self):
+        self._set_headers()
+        self.wfile.write(json.dumps(db['user'].holdings).encode())
 
     def _set_headers(self):
         self.send_response(200)

@@ -32,7 +32,7 @@ export default {
             xhr.post(Const.URL + 'buy', JSON.stringify({
                 date: this.$parent.myDate, 
                 price: this.$parent.myPrice, 
-                quantity: this.quantity, 
+                qty: this.quantity, 
                 intraday: this.checked
             }))
         },
