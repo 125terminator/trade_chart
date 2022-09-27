@@ -18,7 +18,19 @@
       </div>
       </div>
       <div class="container container-holdings">
-      <div>
+      <table id="thirdTable">
+  <thead>
+    <tr>
+      <th v-for="col in columns" v-on:click="sortTable(col)">{{col}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="row in rows">
+        <td v-for="col in columns">{{row[col]}}</td>
+    </tr>
+  </tbody>
+</table> 
+      <!-- <div>
           <table>
           <tr>
               <th>Instrument</th>
@@ -39,7 +51,7 @@
               <td>0.2%</td>
           </tr>
           </table>
-      </div>
+      </div> -->
       </div>
 </div>
   </template>
@@ -104,7 +116,6 @@ export default {
               // Register onrange callback & And a stream of trades
               this.chart.onrange(this.load_chunk)
               this.$refs.tvjs.resetChart()
-              // this.stream = new Stream(Const.WSS)
               this.stream.ontrades = this.on_trades
               window.dc = this.chart      // Debug
               window.tv = this.$refs.tvjs // Debug
@@ -177,7 +188,6 @@ export default {
       },
       on_trades(data) {
           var trade = data.live
-          console.log(data.holdings)
           this.myDate = trade[0]
           this.myPrice = trade[1]
           // console.log(this.$refs.tvjs.getRange())
@@ -192,10 +202,29 @@ export default {
           window.tv.goto(trade[0])
           }
           
+
+          var holdings = data.holdings
+        //   columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.'],
+          for(var i=0; i<holdings.length; i++) {
+            holdings[i][this.columns[3]] = trade[1]
+            var pAndL = holdings[i][this.columns[3]] - holdings[i][this.columns[2]]
+            holdings[i][this.columns[4]] = (pAndL*holdings[i][this.columns[1]]).toFixed(2)
+            holdings[i][this.columns[5]] = ((pAndL/holdings[i][this.columns[2]])*100).toFixed(2)
+        //   console.log(holdings)
+        this.rows = holdings
+          }
+          this.rows = holdings
       },
-      getJson() {
-      },
-      
+      "sortTable": function sortTable(col) {
+      this.rows.sort(function(a, b) {
+        if (a[col] > b[col]) {
+          return 1;
+        } else if (a[col] < b[col]) {
+          return  -1;
+        }
+        return 0;
+      })
+    }
   },
   beforeDestroy() {
       window.removeEventListener('resize', this.onResize)
@@ -218,8 +247,12 @@ export default {
           stream: new Stream(Const.WSS),
           myPrice: 0,
           myDate: "",
-      }
-  }
+          rows: [
+            // { Instrument: 'S1', 'Qty.': 1, 'Avg.': 10, 'Cur. val': 101, 'P&L': 10, 'Net chg.': '1%'},
+            ],
+        columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.'],
+    }
+},
 }
 
 </script>
@@ -254,6 +287,7 @@ table {
 font-family: arial, sans-serif;
 border-collapse: collapse;
 width: 100%;
+table-layout:fixed
 }
 
 td, th {
@@ -265,6 +299,38 @@ padding: 8px;
 tr:nth-child(even) {
 background-color: #dddddd;
 }
+
+/* table {
+  font-family: 'Open Sans', sans-serif;
+  width: 750px;
+  border-collapse: collapse;
+  border: 3px solid #44475C;
+  margin: 10px 10px 0 10px;
+}
+
+table th {
+  text-transform: uppercase;
+  text-align: left;
+  background: #44475C;
+  color: #FFF;
+  cursor: pointer;
+  padding: 8px;
+  min-width: 30px;
+}
+table th:hover {
+        background: #717699;
+      }
+table td {
+  text-align: left;
+  padding: 8px;
+  border-right: 2px solid #7D82A8;
+}
+table td:last-child {
+  border-right: none;
+}
+table tbody tr:nth-child(2n) td {
+  background: #D4D8F9;
+} */
   </style>
 
 <!-- https://github.com/tvjsx/'trading-vue-js'/blob/e881bdb5c3ec3b890d21e3059cb6b3ef85a47432/docs/guide/OVERLAYS.md -->

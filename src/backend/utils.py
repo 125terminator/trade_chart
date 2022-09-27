@@ -20,10 +20,11 @@ def greater_equal_index(df, start):
     return a
 
 class Stock:
-    def __init__(self, price=0, qty=0, sold=False):
+    def __init__(self, price=0, qty=0, sold=False, intraday=False):
         self.price = price
         self.qty = qty
         self.sold = sold
+        self.intraday = intraday
     
     def square_off(self, stock):
         min_qty = min(self.qty, stock.qty)
@@ -37,6 +38,16 @@ class Stock:
         avg_price = (self.price * self.qty + stock.price * stock.qty) / (qty if qty > 0 else 1) # This is to stop from division by 0
         self.price = avg_price
         self.qty = qty
+    
+    def txn(self):
+        if self.qty <= 0:
+            return None
+        
+        col = ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.']
+        qty = -self.qty if self.sold else self.qty
+        instrument = 's1-i' if self.intraday else 's1'
+        return {col[0]: instrument, col[1]: qty, col[2]: round(self.price, 2), col[3]: self.price, col[4]: 0, col[5]: "0%"}
+        
 
     def __str__(self) -> str:
         return str({'price':self.price, 'qty':self.qty})

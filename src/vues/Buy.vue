@@ -38,7 +38,13 @@ export default {
         },
         on_sell() {
             console.log("sell", this.quantity)
-            xhr.post(Const.URL + 'sell', this.quantity)
+            this.quantity = parseInt(this.quantity)
+            xhr.post(Const.URL + 'sell', JSON.stringify({
+                date: this.$parent.myDate, 
+                price: this.$parent.myPrice, 
+                qty: this.quantity, 
+                intraday: this.checked
+            }))
         }
     },
     data() {

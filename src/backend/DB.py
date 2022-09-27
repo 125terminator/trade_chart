@@ -61,9 +61,9 @@ class User(DB):
     def __init__(self):
         super().__init__('../../data/user.json')
         self.data = {'buy': [], 'sell': []}
-        self.bought = {'cnc': Stock(), 'intraday': Stock()} 
+        self.bought = {'cnc': Stock(), 'intraday': Stock(intraday=True)} 
         # cnc is not allowed for short selling
-        self.sold = {'cnc': Stock(), 'intraday': Stock()}
+        self.sold = {'cnc': Stock(sold=True), 'intraday': Stock(sold=True, intraday=True)}
         self.pAndL = 0
         # Instrument	Qty.	Avg.	cost	Cur. val	P&L	Net chg.
 
@@ -100,7 +100,13 @@ class User(DB):
 
     @property
     def transactions(self):
-        return {"sold": str(self.sold), "bought": str(self.bought)}
+        rt = []
+        col = ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.']
+        for v in {self.bought['cnc'], self.bought['intraday'], self.sold['intraday']}:
+            row = v.txn()
+            if row is not None:
+                rt.append(row)
+        return rt
 
 if __name__ == "__main__":
     o = User()
