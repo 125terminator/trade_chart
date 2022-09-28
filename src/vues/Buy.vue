@@ -6,7 +6,7 @@
   <button @click="on_sell">Sell</button>
   <span class="checkbox">
   <input type="checkbox" id="checkbox" v-model="checked" />
-    <label for="checkbox">{{ checked }}</label>
+    <label for="checkbox">{{ checked === true ? "INTRADAY" : "CNC" }}</label>
 </span>
 </div>
 </template>

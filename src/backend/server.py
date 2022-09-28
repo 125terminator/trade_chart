@@ -7,13 +7,13 @@ from serverWs import run as runWs
 from serverHttp import run as runHttp
 from DB import User, Date
 
-ohlc = OHLC('../../data/reliance.csv', clean=False)
-db = {}
-db['user'] = User()
-db['date'] = Date()
+reliance = OHLC('../../data/reliance.csv', clean=False)
+nse = OHLC('../../data/nse.csv', clean=False)
+ohlc_list = {'reliance': reliance, 'nse': nse}
+db = {'user': User(), 'date': Date()}
 
-t1 = threading.Thread(target=runWs, args=(ohlc, db, ))
-t2 = threading.Thread(target=runHttp, args=(ohlc, db, ))
+t1 = threading.Thread(target=runWs, args=(ohlc_list, db, ))
+t2 = threading.Thread(target=runHttp, args=(ohlc_list, db, ))
 t1.start()
 t2.start()
 try:

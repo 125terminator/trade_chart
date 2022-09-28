@@ -13,7 +13,7 @@ import pandas as pd
 from OHLC import OHLC
 from utils import *
 
-ohlc = None
+ohlc_list = None
 db = None
 clients = None
 
@@ -27,10 +27,16 @@ def client_left(client, server):
 	clients = None
 
 def read(client, server, message):
-	pass
+	global clients
+	# Logic to pause or resume streaming
+	if clients is not None:
+		clients = None
+	else:
+		clients = client
 
 def stream(server):
 	global clients
+	ohlc = ohlc_list['reliance']
 	df = ohlc.df
 	startTime = parser.parse(db['date'].now, ignoretz=True)
 	ind = greater_equal_index(df, startTime)
@@ -47,8 +53,8 @@ def stream(server):
 		ind += 1
 
 def run(_ohlc, _db):
-	global ohlc, db, clients
-	ohlc = _ohlc
+	global ohlc_list, db, clients
+	ohlc_list = _ohlc
 	db = _db
 
 

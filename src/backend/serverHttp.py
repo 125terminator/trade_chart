@@ -5,11 +5,9 @@ import datetime
 import json
 import pandas as pd
 
-from OHLC import OHLC
 from utils import *
 
-# ohlc = OHLC('../../data/reliance.csv', clean=False)
-ohlc = None
+ohlc_list = None
 db = None
 
 
@@ -17,11 +15,12 @@ class Server(BaseHTTPRequestHandler):
     def do_GET(self):
         params = parse_qs(urlparse(self.path).query)
 
+        print(self.path)
         if self.path == "/api/holdings":
             return self.holdingsHandler()
         if self.path == '/api/state' :
             return self.stateHandler()
-        if 'stock' in params:
+        if '/api/stock' in self.path:
             self.getStockHandler(params=params)
     
     def do_POST(self): 
@@ -45,6 +44,9 @@ class Server(BaseHTTPRequestHandler):
         print(json.dumps(db['user'].transactions, indent=4))
 
     def getStockHandler(self, params):
+        if params['stock'][0] not in ohlc_list:
+            return
+        ohlc = ohlc_list[params['stock'][0]]
         endTime = datetime.datetime.fromtimestamp(int(params['endTime'][0])/1000.0)
         startTime = endTime - datetime.timedelta(days=5)
 
@@ -72,8 +74,8 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
         
 def run(_ohlc, _db, server_class=HTTPServer, handler_class=Server, port=8008):
-    global ohlc, db
-    ohlc = _ohlc
+    global ohlc_list, db
+    ohlc_list = _ohlc
     db = _db
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
