@@ -19,8 +19,9 @@ clients = None
 
 
 def new_client(client, server):
-	global clients
-	clients = client
+	pass
+	# global clients
+	# clients = client
 
 def client_left(client, server):
 	global clients
@@ -36,19 +37,31 @@ def read(client, server, message):
 
 def stream(server):
 	global clients
-	ohlc = ohlc_list['reliance']
-	df = ohlc.df
+	reliance, nse = ohlc_list['reliance'], ohlc_list['nse']
 	startTime = parser.parse(db['date'].now, ignoretz=True)
-	ind = greater_equal_index(df, startTime)
+	ind = reliance.ge_index(startTime)
 	while True:
 		sleep(1)
 		if clients == None:
 			continue
-			
-		start = df.index[ind].tz_localize('Asia/Kolkata')
-		o, h, l, c, v = df.iloc[ind]
-		data = {'live': [str(start), o, h, l, c, v], 'holdings': db['user'].transactions}
-		server.send_message(clients, json.dumps(data))
+		
+		nse_open_price = nse.df.Open[nse.open_index(ind)]
+		nse_current_price = nse.df.Close[ind]
+		nse_change = round(get_change(current=nse_current_price, previous=nse_open_price), 2)
+
+		start = nse.df.index[ind].tz_localize('Asia/Kolkata')
+		o, h, l, c, v = nse.df.iloc[ind]
+		nse_data = [str(start), o, h, l, c, v]
+
+		start = reliance.df.index[ind].tz_localize('Asia/Kolkata')
+		o, h, l, c, v = reliance.df.iloc[ind]
+		reliance_data = [str(start), o, h, l, c, v]
+		data = {
+			'live': {'nse': nse_data, 'reliance': reliance_data}, 
+			'holdings': db['user'].transactions,
+			'nse_change': nse_change
+			}
+		server.send_message_to_all(json.dumps(data))
 		db['date'].set(f'{start}')
 		ind += 1
 

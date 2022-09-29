@@ -58,14 +58,14 @@ class Date(DB):
         return self.get()['now']
 
 class User(DB):
-    def __init__(self):
+    def __init__(self, date_db):
         super().__init__('../../data/user.json')
         self.data = {'buy': [], 'sell': []}
         self.bought = {'cnc': Stock(), 'intraday': Stock(intraday=True)} 
         # cnc is not allowed for short selling
         self.sold = {'cnc': Stock(sold=True), 'intraday': Stock(sold=True, intraday=True)}
         self.pAndL = 0
-        # Instrument	Qty.	Avg.	cost	Cur. val	P&L	Net chg.
+        self.date_db = date_db
 
     def buy(self, data):
         self.data['buy'].append(data)
@@ -87,6 +87,9 @@ class User(DB):
         op = 'intraday' if data['intraday'] else 'cnc'
         sell_stock = Stock(price=data['price'], qty=data['qty'])
         
+        if op == 'cnc' and sell_stock.qty > self.bought[op].qty:
+            return # cnc short selling not allowed
+            
         self.pAndL += self.bought[op].square_off(sell_stock)
         self.sold[op].avg(sell_stock)
         # if op == 'intraday':

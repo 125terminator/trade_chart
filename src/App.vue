@@ -1,8 +1,12 @@
 <template>
     <div class="flex">
         <div>
-            <span v-bind:style="nse_percentage < 0 ? {color: '#f00'} : {color: '#000'}">NSE: {{ nse_percentage }}%</span>
-            <input v-model="symbol" placeholder="Enter Symbol" />
+            <span v-bind:style="nse_change < 0 ? {color: '#f00'} : {color: '#008000'}">NSE: {{ nse_change }}%</span>
+            <!-- <input @keyup.enter="on_symbol_change" v-model="symbol_model" placeholder="Enter Symbol" /> -->
+            <select v-model="symbol_model" >
+                <option value="reliance">Reliance</option>
+                <option value="nse">NSE</option>
+            </select>
             <button @click="on_symbol_change">GET</button>
         </div>
         <div class="container container-chart">
@@ -27,7 +31,7 @@
                 <tbody>
                     <tr v-for="row in rows">
                         <td v-for="col in columns"
-                            v-bind:style="row['Net chg.'] < 0 ? {color: '#f00'} : {color: '#000'}">
+                            v-bind:style="row['Net chg.'] < 0 ? {color: '#f00'} : {color: '#008000'}">
                             {{row[col]}}</td>
                     </tr>
                 </tbody>
@@ -86,8 +90,14 @@ export default {
         // Load the last data chunk & init DataCube:
 
     },
+    watch: {
+        symbol_model(o, n) {
+            this.on_symbol_change()
+        }
+    },
     methods: {
         on_symbol_change() {
+            this.symbol = this.symbol_model
             this.on_selected()
         },
         on_pause_resume() {
@@ -107,7 +117,7 @@ export default {
                 this.load_chunk([now_ms, now_ms], tf).then(data => {
                     this.chart = new DataCube({
                         chart: {
-                            type: "Candles",
+                            type: this.chart_types[this.symbol],
                             data: data['chart.data'],
                             tf: tf,
                             indexBased: true,
@@ -201,7 +211,9 @@ export default {
             }
         },
         on_trades(data) {
-            var trade = data.live
+            this.nse_change = data.nse_change
+            var trade = data.live[this.symbol]
+            console.log(trade)
             this.myDate = trade[0]
             this.myPrice = trade[1]
             // console.log(this.$refs.tvjs.getRange())
@@ -252,9 +264,11 @@ export default {
     },
     data() {
         return {
-            pause: false,
+            pause: true,
             symbol: "reliance",
-            nse_percentage: -1,
+            symbol_model: "reliance",
+            chart_types: {'nse': 'Candles', 'reliance': 'Candles'},
+            nse_change: -1,
             chart1: Data,
             chart: {},
             tfs: { '1m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {} },
@@ -327,6 +341,7 @@ th {
 
 tr:nth-child(even) {
     background-color: #dddddd;
+    color: #008000;
 }
 
 /* table {

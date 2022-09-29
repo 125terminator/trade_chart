@@ -10,7 +10,9 @@ from DB import User, Date
 reliance = OHLC('../../data/reliance.csv', clean=False)
 nse = OHLC('../../data/nse.csv', clean=False)
 ohlc_list = {'reliance': reliance, 'nse': nse}
-db = {'user': User(), 'date': Date()}
+date_db = Date()
+user_db = User(date_db=date_db)
+db = {'user': user_db, 'date': date_db}
 
 t1 = threading.Thread(target=runWs, args=(ohlc_list, db, ))
 t2 = threading.Thread(target=runHttp, args=(ohlc_list, db, ))

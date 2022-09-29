@@ -5,12 +5,13 @@ import numpy as np
 
 class OHLC:
     def __init__(self, filename, clean=True):
+        necessary_columns = ['Date','Open','High','Low','Close','Volume']
         # Never input df data which is daily, interval should be in minutes, hours
-        self.df = pd.read_csv(filename)
+        self.df = pd.read_csv(filename, usecols=necessary_columns, nrows=1500)
 
         # Remove unnessary columns
-        self.df.drop('6', axis=1, inplace=True)
-        self.df.drop('Unnamed: 0', axis=1, inplace=True)
+        # self.df.drop('6', axis=1, inplace=True)
+        # self.df.drop('Unnamed: 0', axis=1, inplace=True)
 
         # Convert string dates to pd.Datetime
         self.df.Date = pd.DatetimeIndex(self.df.Date)
@@ -61,6 +62,20 @@ class OHLC:
 
         freq = freq_minutes.where(freq_minutes >= minutes).first_valid_index()
         return self.df.resample(freq, label='left', closed="left", origin='start').agg(OHLCV_AGG).dropna()
+
+    def ge_index(self, start):
+        '''
+        returns index whose timeindex is greater than equal to start
+        '''
+        return self.df.index.searchsorted(start)
+    
+    def open_index(self, ind):
+        '''
+        returns index of first tick for the given start day
+        '''
+        start = self.df.index[ind]
+        start = start.replace(hour=6)
+        return self.ge_index(start)
 
     def between_time(self, start, end):
         # if string convert to pd.to_datetime("2015-03-02T09:17:00")
