@@ -3,7 +3,7 @@
         <div>
             <span v-bind:style="nse_change < 0 ? {color: '#f00'} : {color: '#008000'}">NSE: {{ nse_change }}%</span>
             <!-- <input @keyup.enter="on_symbol_change" v-model="symbol_model" placeholder="Enter Symbol" /> -->
-            <select v-model="symbol_model" >
+            <select v-model="symbol_model">
                 <option value="reliance">Reliance</option>
                 <option value="nse">NSE</option>
             </select>
@@ -36,28 +36,6 @@
                     </tr>
                 </tbody>
             </table>
-            <!-- <div>
-          <table>
-          <tr>
-              <th>Instrument</th>
-              <th>Qty.</th>
-              <th>Avg.</th>
-              <th>cost</th>
-              <th>Cur. val</th>
-              <th>P&L</th>
-              <th>Net chg.</th>
-          </tr>
-          <tr>
-              <td>IRCTC</td>
-              <td>10</td>
-              <td>100</td>
-              <td>1000</td>
-              <td>1002</td>
-              <td>20</td>
-              <td>0.2%</td>
-          </tr>
-          </table>
-      </div> -->
         </div>
     </div>
 </template>
@@ -73,6 +51,7 @@ import Buy from './vues/Buy.vue'
 
 
 import * as Const from './js/const.js'
+import * as utils from './js/utils.js'
 import Stream from './js/Stream.js'
 import Data from '../data/data.json'
 
@@ -82,9 +61,10 @@ export default {
     components: { TradingVue, TfSelector, Buy },
     mounted() {
         window.addEventListener('keyup', (event) => {
-    if (event.key === ' ') {
-        this.on_pause_resume()
-    }})
+            if (event.key === ' ') {
+                this.on_pause_resume()
+            }
+        })
         window.addEventListener('resize', this.onResize)
         this.onResize()
         // Load the last data chunk & init DataCube:
@@ -101,7 +81,7 @@ export default {
             this.on_selected()
         },
         on_pause_resume() {
-            if (this.pause === false){
+            if (this.pause === false) {
                 this.pause = true
             } else {
                 this.pause = false
@@ -109,8 +89,8 @@ export default {
             this.stream.send()
         },
         on_selected(tf) {
-            if (tf === undefined){
-                tf=60000
+            if (tf === undefined) {
+                tf = 60000
             }
             this.getState().then(state => {
                 let now_ms = parseFloat(moment(state.now).format('X')) * 1000
@@ -223,7 +203,7 @@ export default {
                 candle: trade,
             })
             this.chart.update({
-                t: trade[0]+60*1000,     // Exchange time (optional)
+                t: trade[0] + 60 * 1000,     // Exchange time (optional)
                 price: trade[1],   // Trade price
                 volume: 0,  // Trade amount
             })
@@ -231,7 +211,7 @@ export default {
             // console.log(d)
             // console.log(trade[0])
             if (d > -600000) {
-                window.tv.goto(trade[0]+60*10000)
+                window.tv.goto(trade[0] + 60 * 10000)
             }
 
 
@@ -244,6 +224,12 @@ export default {
                 holdings[i][this.columns[4]] = (pAndL * holdings[i][this.columns[1]]).toFixed(2)
                 holdings[i][this.columns[5]] = neg_qty * ((pAndL / holdings[i][this.columns[2]]) * 100).toFixed(2)
                 //   console.log(holdings)
+
+                // bp = holdings[i][this.columns[2]]
+                // sp
+                // if(holdings[i][this.columns[0]].includes("-i")) {
+                //     net_profit = 
+                // }
             }
             this.rows = holdings
         },
@@ -267,7 +253,7 @@ export default {
             pause: true,
             symbol: "reliance",
             symbol_model: "reliance",
-            chart_types: {'nse': 'Candles', 'reliance': 'Candles'},
+            chart_types: { 'nse': 'Candles', 'reliance': 'Candles' },
             nse_change: -1,
             chart1: Data,
             chart: {},
@@ -286,9 +272,8 @@ export default {
             myPrice: 0,
             myDate: "",
             rows: [
-                // { Instrument: 'S1', 'Qty.': 1, 'Avg.': 10, 'Cur. val': 101, 'P&L': 10, 'Net chg.': '1%'},
             ],
-            columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.'],
+            columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.', 'Brokerage'],
         }
     },
 }

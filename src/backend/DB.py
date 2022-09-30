@@ -6,8 +6,8 @@ from typing import final
 
 from numpy import fromfile
 
+from Stock import Stock
 from const import *
-from utils import Stock
 
 mutex = Lock()
 
@@ -64,8 +64,15 @@ class User(DB):
         self.bought = {'cnc': Stock(), 'intraday': Stock(intraday=True)} 
         # cnc is not allowed for short selling
         self.sold = {'cnc': Stock(sold=True), 'intraday': Stock(sold=True, intraday=True)}
+        # trades = ['buy_price', 'sell_price', 'qty', 'type', 'p&l', 'brokerage']
+        self.trades = []
         self.pAndL = 0
         self.date_db = date_db
+
+    def add_trades(self, trade):
+        if trade[2] <= 0:
+            return
+        self.trades.append(trade)
 
     def buy(self, data):
         self.data['buy'].append(data)
@@ -73,8 +80,12 @@ class User(DB):
         op = 'intraday' if data['intraday'] else 'cnc'     
         buy_stock = Stock(price=data['price'], qty=data['qty'])
 
-        self.pAndL += self.sold[op].square_off(buy_stock)
+        pAndL, trade = self.sold[op].square_off(buy_stock)
+        self.pAndL += pAndL
         self.bought[op].avg(buy_stock)
+
+        self.add_trades(trade)
+
         # if op == 'intraday':
         #     self.pAndL += self.sold[op].square_off(buy_stock)
         #     self.bought[op].avg(buy_stock)
@@ -90,8 +101,12 @@ class User(DB):
         if op == 'cnc' and sell_stock.qty > self.bought[op].qty:
             return # cnc short selling not allowed
             
-        self.pAndL += self.bought[op].square_off(sell_stock)
+        pAndL, trade = self.bought[op].square_off(sell_stock)
+        self.pAndL += pAndL
         self.sold[op].avg(sell_stock)
+
+
+        self.add_trades(trade)
         # if op == 'intraday':
         #     self.pAndL += self.bought[op].square_off(sell_stock)
         #     self.sold[op].avg(sell_stock)
