@@ -10,8 +10,8 @@
                 </thead>
                 <tbody>
                     <tr v-for="row in rows">
-                        <td v-for="col in columns" v-bind:style="row['p&l'] < 0 ? {color: '#f00'} : {color: '#008000'}">
-                            {{row[col]}}</td>
+                        <td v-for="col in row" v-bind:style="row[4] < 0 ? {color: '#f00'} : {color: '#008000'}">
+                            {{col}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -34,8 +34,8 @@ export default {
                 .then(
                     response => response.text() // .json(), .blob(), etc.
                 ).then(
-                    text => {console.log(text)
-                         this.rows = text}
+                    text => {
+                         this.rows = JSON.parse(text)}
                 );
         }
     },

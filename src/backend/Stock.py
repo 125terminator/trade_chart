@@ -18,11 +18,12 @@ class Stock:
         return [bp, sp, qty, typ, net_profit, brokerage]
 
     def square_off(self, stock):
+        trades = self.trade(stock)
         min_qty = min(self.qty, stock.qty)
         pAndL = abs(stock.price - self.price) * min_qty
         self.qty -= min_qty
         stock.qty -= min_qty
-        return pAndL, self.trade(stock)
+        return pAndL, trades
 
     def avg(self, stock):
         qty = self.qty + stock.qty
