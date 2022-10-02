@@ -1,1 +1,1 @@
-ls server*.py DB.py | entr -r python3 server.py
+ls server*.py DB.py | entr -rc python3 server.py

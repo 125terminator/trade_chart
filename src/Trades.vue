@@ -22,11 +22,13 @@
 <script>
 
 import * as Const from './js/const.js'
+import Stream from './js/Stream.js'
 
 export default {
     name: "Trade",
     mounted() {
         this.refresh()
+        setTimeout(this.start_stream, 500);
     },
     methods: {
         refresh() {
@@ -37,12 +39,23 @@ export default {
                     text => {
                          this.rows = JSON.parse(text)}
                 );
+        },
+        start_stream() {
+            this.stream.ontrades = this.on_trades
+            this.stream.send({'pause': false, 'subscription': 'trades'})
+        },
+        on_trades(data) {
+            this.rows = data
         }
+    },
+    beforeDestroy() {
+        this.stream.off()
     },
     data() {
         return {
             columns: ['buy_price', 'sell_price', 'qty', 'type', 'p&l', 'brokerage'],
             rows: [],
+            stream: new Stream(Const.WSS),
         }
     }
 }

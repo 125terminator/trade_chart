@@ -7,33 +7,77 @@ import datetime
 from dateutil import parser
 import threading
 import json
+from threading import Lock
 
 import pandas as pd
 
 from OHLC import OHLC
 from utils import *
 
+mutex = Lock()
+
 ohlc_list = None
 db = None
-clients = None
+clients = {}
+'''
+key -> client id
+val -> (client, properties)
+
+properties:
+	pause: true -> do not stream data to client
+	subscription
+		all -> receive all data
+		trades -> receive only squarred off trade data
+'''
 
 
 def new_client(client, server):
-	pass
-	# global clients
-	# clients = client
+	global clients
 
 def client_left(client, server):
 	global clients
-	clients = None
+	mutex.acquire()
+	try:
+		clients.pop(client['id'], None)
+	finally:
+		mutex.release()
 
 def read(client, server, message):
 	global clients
-	# Logic to pause or resume streaming
-	if clients is not None:
-		clients = None
-	else:
-		clients = client
+	print(json.loads(message))
+	mutex.acquire()
+	try:
+		clients[client['id']] = (client, json.loads(message))
+		print(clients)
+	finally:
+		mutex.release()
+
+
+def stream_to_client(client, server, data, props):
+	if props['pause']:
+		return
+	subs = props['subscription']
+	if subs == 'all':
+		server.send_message(client, json.dumps(data))
+	if subs == 'trades':
+		server.send_message(client, json.dumps(data['trades']))
+
+
+def stream_to_clients(server, data):
+	global clients
+	mutex.acquire()
+	try:
+		for id, val in clients.items():
+			stream_to_client(val[0], server, data, val[1])
+	finally:
+		mutex.release()
+
+def all_client_ready():
+	global clients
+	for id, val in clients.items():
+		if val[1]['pause']:
+			return False
+	return len(clients) > 0
 
 def stream(server):
 	global clients
@@ -42,12 +86,12 @@ def stream(server):
 	ind = reliance.ge_index(startTime)
 	while True:
 		sleep(1)
-		if clients == None:
+		if not all_client_ready():
 			continue
-		
 		nse_open_price = nse.df.Open[nse.open_index(ind)]
 		nse_current_price = nse.df.Close[ind]
-		nse_change = round(get_change(current=nse_current_price, previous=nse_open_price), 2)
+		nse_change = round(get_change(
+			current=nse_current_price, previous=nse_open_price), 2)
 
 		start = nse.df.index[ind].tz_localize('Asia/Kolkata')
 		o, h, l, c, v = nse.df.iloc[ind]
@@ -57,19 +101,21 @@ def stream(server):
 		o, h, l, c, v = reliance.df.iloc[ind]
 		reliance_data = [str(start), o, h, l, c, v]
 		data = {
-			'live': {'nse': nse_data, 'reliance': reliance_data}, 
-			'holdings': db['user'].transactions,
-			'nse_change': nse_change
-			}
-		server.send_message_to_all(json.dumps(data))
+                    'live': {'nse': nse_data, 'reliance': reliance_data},
+               					'holdings': db['user'].transactions,
+               					'nse_change': nse_change,
+               					'trades': db['user'].trades,
+                }
+		stream_to_clients(server, data)
+		# server.send_message_to_all(json.dumps(data))
 		db['date'].set(f'{start}')
 		ind += 1
+
 
 def run(_ohlc, _db):
 	global ohlc_list, db, clients
 	ohlc_list = _ohlc
 	db = _db
-
 
 	server = WebsocketServer(host='127.0.0.1', port=13254, loglevel=logging.INFO)
 	server.set_fn_new_client(new_client)
@@ -78,7 +124,6 @@ def run(_ohlc, _db):
 	t1 = threading.Thread(target=stream, args=(server, ))
 	t1.start()
 	server.run_forever()
-
 
 
 # https://github.com/Pithikos/python-websocket-server

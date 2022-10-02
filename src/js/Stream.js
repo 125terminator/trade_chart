@@ -19,7 +19,7 @@ export default function Stream(url) {
 
     return {
         set ontrades(val) { cb = val },
-        send() { ws.send("data") },
+        send(text) { ws.send(JSON.stringify(text)) },
         off() { ws.close(1000) }
     }
 }

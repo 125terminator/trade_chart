@@ -86,7 +86,7 @@ export default {
             } else {
                 this.pause = false
             }
-            this.stream.send()
+            this.stream.send({'pause': this.pause, 'subscription': 'all'})
         },
         on_selected(tf) {
             if (tf === undefined) {
