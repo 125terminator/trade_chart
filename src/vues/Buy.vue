@@ -1,14 +1,14 @@
 <template>
-  <!-- <button @click="count++">You clicked me {{ count }} times.</button> -->
-  <div class="checkbox">
-  <input v-model="quantity" placeholder="Quantity" />
-  <button @click="on_buy">Buy</button>
-  <button @click="on_sell">Sell</button>
-  <span class="checkbox">
-  <input type="checkbox" id="checkbox" v-model="checked" />
-    <label for="checkbox">{{ checked === true ? "INTRADAY" : "CNC" }}</label>
-</span>
-</div>
+    <!-- <button @click="count++">You clicked me {{ count }} times.</button> -->
+    <div class="checkbox">
+        <input v-model="quantity" placeholder="Quantity" />
+        <button @click="on_buy">Buy</button>
+        <button @click="on_sell">Sell</button>
+        <span class="checkbox">
+            <input type="checkbox" id="checkbox" v-model="checked" />
+            <label for="checkbox">{{ checked === true ? "INTRADAY" : "CNC" }}</label>
+        </span>
+    </div>
 </template>
 
 
@@ -30,9 +30,9 @@ export default {
             console.log("buy", this.quantity)
             this.quantity = parseInt(this.quantity)
             xhr.post(Const.URL + 'buy', JSON.stringify({
-                date: this.$parent.myDate, 
-                price: this.$parent.myPrice, 
-                qty: this.quantity, 
+                date: this.$parent.myDate,
+                price: this.$parent.myPrice,
+                qty: this.quantity,
                 intraday: this.checked
             }))
         },
@@ -40,31 +40,31 @@ export default {
             console.log("sell", this.quantity)
             this.quantity = parseInt(this.quantity)
             xhr.post(Const.URL + 'sell', JSON.stringify({
-                date: this.$parent.myDate, 
-                price: this.$parent.myPrice, 
-                qty: this.quantity, 
+                date: this.$parent.myDate,
+                price: this.$parent.myPrice,
+                qty: this.quantity,
                 intraday: this.checked
             }))
         }
     },
     data() {
-    return {
-        count: 0,
-        checked: false,
-        quantity: 0,
-    }
+        return {
+            count: 0,
+            checked: false,
+            quantity: 0,
+        }
     }
 }
 </script>
 
 <style>
-    .timeframe {
-        margin-right: 5px;
-        user-select: none;
-        cursor: pointer;
-        font-weight: 200;
-        max-width: 10px;
-        color: #fdfdff;
-        background-color: #fdfdff;
-    }
-    </style>
+.timeframe {
+    margin-right: 5px;
+    user-select: none;
+    cursor: pointer;
+    font-weight: 200;
+    max-width: 10px;
+    color: #fdfdff;
+    background-color: #fdfdff;
+}
+</style>

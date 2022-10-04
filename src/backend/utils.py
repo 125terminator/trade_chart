@@ -12,6 +12,7 @@ def push_state(state):
     f.close()
 
 def between_time(df, start, end):
+    print(start, end)
     return df[(df.index >= start) & (df.index <= end)]
 
 def get_change(current, previous):

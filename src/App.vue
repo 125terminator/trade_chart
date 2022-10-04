@@ -4,6 +4,7 @@
             <span v-bind:style="nse_change < 0 ? {color: '#f00'} : {color: '#008000'}">NSE: {{ nse_change }}%</span>
             <!-- <input @keyup.enter="on_symbol_change" v-model="symbol_model" placeholder="Enter Symbol" /> -->
             <select v-model="symbol_model">
+                <option value="ashokley">Asholkley</option>
                 <option value="reliance">Reliance</option>
                 <option value="nse">NSE</option>
             </select>
@@ -86,7 +87,7 @@ export default {
             } else {
                 this.pause = false
             }
-            this.stream.send({'pause': this.pause, 'subscription': 'all'})
+            this.stream.send({ 'pause': this.pause, 'subscription': 'all' })
         },
         on_selected(tf) {
             if (tf === undefined) {
@@ -193,7 +194,6 @@ export default {
         on_trades(data) {
             this.nse_change = data.nse_change
             var trade = data.live[this.symbol]
-            console.log(trade)
             this.myDate = trade[0]
             this.myPrice = trade[1]
             // console.log(this.$refs.tvjs.getRange())
@@ -251,13 +251,13 @@ export default {
     data() {
         return {
             pause: true,
-            symbol: "reliance",
-            symbol_model: "reliance",
+            symbol: "ashokley",
+            symbol_model: "ashokley",
             chart_types: { 'nse': 'Candles', 'reliance': 'Candles' },
-            nse_change: -1,
+            nse_change: 0,
             chart1: Data,
             chart: {},
-            tfs: { '1m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {} },
+            tfs: { '1m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {}, '2H': {}, '3H': {}, '1D': {} },
             width: window.innerWidth,
             height: window.innerHeight,
             colors: {

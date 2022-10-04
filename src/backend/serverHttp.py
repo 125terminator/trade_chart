@@ -4,10 +4,12 @@ from urllib.parse import urlparse, parse_qs
 import datetime
 import json
 import pandas as pd
+import os
 
+from OHLC import OHLC
 from utils import *
 
-ohlc_list = None
+historical = None
 db = None
 
 
@@ -50,9 +52,11 @@ class Server(BaseHTTPRequestHandler):
         # print(json.dumps(db['user'].transactions, indent=4))
 
     def getStockHandler(self, params):
-        if params['stock'][0] not in ohlc_list:
+        symbol = params['stock'][0]
+        ohlc = historical.get(symbol)
+        if ohlc is None:
             return
-        ohlc = ohlc_list[params['stock'][0]]
+
         endTime = datetime.datetime.fromtimestamp(
             int(params['endTime'][0])/1000.0)
         startTime = endTime - datetime.timedelta(days=5)
@@ -81,9 +85,9 @@ class Server(BaseHTTPRequestHandler):
         self.end_headers()
 
 
-def run(_ohlc, _db, server_class=HTTPServer, handler_class=Server, port=8008):
-    global ohlc_list, db
-    ohlc_list = _ohlc
+def run(_historical, _db, server_class=HTTPServer, handler_class=Server, port=8008):
+    global historical, db
+    historical = _historical
     db = _db
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)

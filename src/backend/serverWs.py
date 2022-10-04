@@ -16,7 +16,7 @@ from utils import *
 
 mutex = Lock()
 
-ohlc_list = None
+historical = None
 db = None
 clients = {}
 '''
@@ -81,13 +81,14 @@ def all_client_ready():
 
 def stream(server):
 	global clients
-	reliance, nse = ohlc_list['reliance'], ohlc_list['nse']
-	startTime = parser.parse(db['date'].now, ignoretz=True)
-	ind = reliance.ge_index(startTime)
+	reliance, nse, ashokley = historical.get('reliance'), historical.get('nse'), historical.get('ashokley')
 	while True:
 		sleep(1)
 		if not all_client_ready():
 			continue
+
+		startTime = parser.parse(db['date'].now, ignoretz=True)
+		ind = nse.ge_index(startTime)
 		nse_open_price = nse.df.Open[nse.open_index(ind)]
 		nse_current_price = nse.df.Close[ind]
 		nse_change = round(get_change(
@@ -97,24 +98,30 @@ def stream(server):
 		o, h, l, c, v = nse.df.iloc[ind]
 		nse_data = [str(start), o, h, l, c, v]
 
+		ind = reliance.ge_index(startTime)
 		start = reliance.df.index[ind].tz_localize('Asia/Kolkata')
 		o, h, l, c, v = reliance.df.iloc[ind]
 		reliance_data = [str(start), o, h, l, c, v]
+
+		ind = ashokley.ge_index(startTime)
+		start = ashokley.df.index[ind].tz_localize('Asia/Kolkata')
+		o, h, l, c, v = ashokley.df.iloc[ind]
+		ashokley_data = [str(start), o, h, l, c, v]
 		data = {
-                    'live': {'nse': nse_data, 'reliance': reliance_data},
+                    'live': {'nse': nse_data, 'reliance': reliance_data, 'ashokley': ashokley_data},
                					'holdings': db['user'].transactions,
                					'nse_change': nse_change,
                					'trades': db['user'].trades,
                 }
 		stream_to_clients(server, data)
 		# server.send_message_to_all(json.dumps(data))
+		start = start.replace(second=start.second+1)
 		db['date'].set(f'{start}')
-		ind += 1
 
 
-def run(_ohlc, _db):
-	global ohlc_list, db, clients
-	ohlc_list = _ohlc
+def run(_historical, _db):
+	global historical, db, clients
+	historical = _historical
 	db = _db
 
 	server = WebsocketServer(host='127.0.0.1', port=13254, loglevel=logging.INFO)

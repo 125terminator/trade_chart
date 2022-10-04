@@ -31,8 +31,11 @@ export default {
             if (this.tf.includes('m')) {
                 multiply_factor = 6000
             }
-            if (this.tf.includes('H')) {
+            else if (this.tf.includes('H')) {
                 multiply_factor = 6000*60
+            }
+            else if(this.tf.includes('D')) {
+                multiply_factor = 6000*60*24
             }
             return parseInt(this.tf)*multiply_factor
         },

@@ -37,12 +37,13 @@ export default {
                     response => response.text() // .json(), .blob(), etc.
                 ).then(
                     text => {
-                         this.rows = JSON.parse(text)}
+                        this.rows = JSON.parse(text)
+                    }
                 );
         },
         start_stream() {
             this.stream.ontrades = this.on_trades
-            this.stream.send({'pause': false, 'subscription': 'trades'})
+            this.stream.send({ 'pause': false, 'subscription': 'trades' })
         },
         on_trades(data) {
             this.rows = data

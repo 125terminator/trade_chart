@@ -7,7 +7,8 @@ class OHLC:
     def __init__(self, filename, clean=True):
         necessary_columns = ['Date','Open','High','Low','Close','Volume']
         # Never input df data which is daily, interval should be in minutes, hours
-        self.df = pd.read_csv(filename, usecols=necessary_columns, nrows=1500)
+        # nrows=10000
+        self.df = pd.read_csv(filename, usecols=necessary_columns)
 
         # Remove unnessary columns
         # self.df.drop('6', axis=1, inplace=True)
