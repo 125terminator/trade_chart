@@ -15,9 +15,9 @@ def between_time(df, start, end):
     print(start, end)
     return df[(df.index >= start) & (df.index <= end)]
 
-def get_change(current, previous):
+def get_change(final, starting):
     try:
-        return (abs(current - previous) / previous) * 100.0
+        return ((final - starting) / starting) * 100.0
     except ZeroDivisionError:
         return 0
 

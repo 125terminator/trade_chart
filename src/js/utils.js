@@ -1,5 +1,5 @@
 
-function cal_intra(bp, sp, qty){
+export function cal_intra(bp, sp, qty){
     bp = parseFloat(bp.toFixed(2));
     sp = parseFloat(sp.toFixed(2));
     qty = parseFloat(qty.toFixed(2));
@@ -23,7 +23,7 @@ function cal_intra(bp, sp, qty){
 
     var stt_total = Math.round(parseFloat(parseFloat((sp * qty) * 0.00025).toFixed(2)));
 
-    var exc_trans_charge = (document.getElementsByClassName("intra_nse")[0].checked) ? parseFloat(parseFloat(0.0000345*turnover).toFixed(2)) : parseFloat(parseFloat(0.0000345*turnover).toFixed(2));
+    var exc_trans_charge = parseFloat(parseFloat(0.0000345*turnover).toFixed(2));
     var cc = 0;
 
     var stax = parseFloat(parseFloat(0.18 * (brokerage + exc_trans_charge)).toFixed(2));
@@ -40,7 +40,7 @@ function cal_intra(bp, sp, qty){
 
     var net_profit = parseFloat(parseFloat(((sp - bp) * qty) - total_tax).toFixed(2));
 
-    return net_profit
+    return [net_profit, total_tax]
 }
 
 function cal_delivery(bp, sp, qty){

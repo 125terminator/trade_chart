@@ -17,11 +17,18 @@
                     :color-grid="colors.colorGrid" :color-text="colors.colorText">
                 </trading-vue>
                 <Buy />
-                <tf-selector :charts="tfs" v-on:selected="on_selected">
+                <tf-selector :charts="tfs" v-on:selected="on_selected" :timeframe="tf">
                 </tf-selector>
             </div>
         </div>
+        <div>
+            <span>Stream sleep time</span> | 
+            <input v-model="stream_sleep_sec" type="range" min="1" max="20"/>
+            <span>{{ stream_sleep_sec/10 }} seconds</span>
+        </div>
+        <div>
         <button @click="on_pause_resume"> {{pause === false ? "PAUSE": "RESUME"}}</button>
+    </div>
         <div class="container container-holdings">
             <table id="thirdTable">
                 <thead>
@@ -52,7 +59,7 @@ import Buy from './vues/Buy.vue'
 
 
 import * as Const from './js/const.js'
-import * as utils from './js/utils.js'
+import * as Utils from './js/utils.js'
 import Stream from './js/Stream.js'
 import Data from '../data/data.json'
 
@@ -74,6 +81,9 @@ export default {
     watch: {
         symbol_model(o, n) {
             this.on_symbol_change()
+        },
+        stream_sleep_sec(o, n) {
+            this.stream.send({'stream_sleep_sec': this.stream_sleep_sec/10})
         }
     },
     methods: {
@@ -225,11 +235,18 @@ export default {
                 holdings[i][this.columns[5]] = neg_qty * ((pAndL / holdings[i][this.columns[2]]) * 100).toFixed(2)
                 //   console.log(holdings)
 
-                // bp = holdings[i][this.columns[2]]
-                // sp
-                // if(holdings[i][this.columns[0]].includes("-i")) {
-                //     net_profit = 
-                // }
+                let bp = holdings[i][this.columns[2]]
+                let sp = holdings[i][this.columns[3]]
+                let qty = holdings[i][this.columns[1]]
+                if (qty < 0) {
+                    // intraday
+                    [bp, sp] = [sp, bp]
+                    qty = -qty
+                }
+                
+                let brokerage = Utils.cal_intra(bp, sp, qty)
+                holdings[i][this.columns[4]] = brokerage[0]
+                holdings[i][this.columns[6]] = brokerage[1]
             }
             this.rows = holdings
         },
@@ -257,6 +274,7 @@ export default {
             nse_change: 0,
             chart1: Data,
             chart: {},
+            tf: '1m',
             tfs: { '1m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {}, '2H': {}, '3H': {}, '1D': {} },
             width: window.innerWidth,
             height: window.innerHeight,
@@ -274,6 +292,7 @@ export default {
             rows: [
             ],
             columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.', 'Brokerage'],
+            stream_sleep_sec: 1,
         }
     },
 }

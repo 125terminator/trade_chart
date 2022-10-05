@@ -78,10 +78,6 @@ class OHLC:
         start = start.replace(hour=6)
         return self.ge_index(start)
 
-    def between_time(self, start, end):
-        # if string convert to pd.to_datetime("2015-03-02T09:17:00")
-        return self.df[(self.df.index >= start) & (self.df.index <= end)]
-
     def findInterval(self):
         mp = dict()
         i = 0

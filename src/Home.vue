@@ -2,7 +2,8 @@
 <template>
     <div>
         <a href="#/">Chart</a> |
-        <a href="#/trade">Trade History</a>
+        <a href="#/trade">Trade History</a> |
+        <a href="#/stockAnalysis">Stock Analysis</a>
         <component :is="currentView" />
     </div>
 </template>
@@ -10,10 +11,12 @@
 <script>
 import App from './App.vue'
 import Trade from './Trades.vue'
+import StockAnalysis from './StockAnalysis.vue'
 
 const routes = {
     '/': App,
-    '/trade': Trade
+    '/trade': Trade,
+    '/stockAnalysis': StockAnalysis
 }
 
 export default {

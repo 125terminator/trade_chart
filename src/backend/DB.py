@@ -96,7 +96,7 @@ class User(DB):
         self.data['sell'].append(data)
 
         op = 'intraday' if data['intraday'] else 'cnc'
-        sell_stock = Stock(price=data['price'], qty=data['qty'])
+        sell_stock = Stock(price=data['price'], qty=data['qty'], sold=True)
         
         if op == 'cnc' and sell_stock.qty > self.bought[op].qty:
             return # cnc short selling not allowed

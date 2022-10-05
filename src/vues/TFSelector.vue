@@ -15,8 +15,9 @@
 <script>
 export default {
     name: 'TfSelector',
-    props: ['charts'],
+    props: ['charts', 'timeframe'],
     mounted() {
+        this.selected = Object.keys(this.$props.charts).indexOf(this.tf)
         this.$emit('selected', this.tf_to_ms())
     },
     computed: {
@@ -47,7 +48,7 @@ export default {
     },
     data() {
         return {
-            tf: "1m",
+            tf: this.timeframe,
             selected: 0,
             myStyle:{
             backgroundColor:"#ffffff" 

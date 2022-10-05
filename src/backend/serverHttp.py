@@ -17,7 +17,7 @@ class Server(BaseHTTPRequestHandler):
     def do_GET(self):
         params = parse_qs(urlparse(self.path).query)
 
-        print(self.path)
+        # print(self.path)
         if self.path == "/api/trades":
             return self.tradesHandler()
         if self.path == "/api/holdings":
@@ -26,6 +26,8 @@ class Server(BaseHTTPRequestHandler):
             return self.stateHandler()
         if '/api/stock' in self.path:
             self.getStockHandler(params=params)
+        if "/api/analysis" in self.path:
+            return self.analysisHandler(params=params)
 
     def do_POST(self):
         content_len = int(self.headers.get('Content-Length'))
@@ -40,6 +42,34 @@ class Server(BaseHTTPRequestHandler):
     def tradesHandler(self):
         self._set_headers()
         self.wfile.write(json.dumps(db['user'].trades).encode())
+    
+    def analysisHandler(self, params):
+        symbol = params['stock'][0]
+        ohlc = historical.get(symbol)
+        if ohlc is None:
+            return
+
+        endTime = datetime.datetime.fromtimestamp(
+            int(params['endTime'][0])/1000.0)
+        startTime = endTime - datetime.timedelta(days=60)
+
+        # print(startTime, endTime)
+        interval = int(params['interval'][0])//6000  # convert ms to seconds
+        df = ohlc.toInterval(interval)
+
+        df = between_time(df, startTime, endTime)[-1000:]
+        df = df[::-1]
+        close_open = get_change(df.Close, df.Open).round(2)
+        high_low = get_change(df.High, df.Low).round(2)
+        high_open = get_change(df.High, df.Open).round(2)
+        low_open = get_change(df.Open, df.Low).round(2)
+        data = pd.DataFrame({'high_low': high_low.values, 'close_open': close_open, 'high_open': high_open,
+                            'low_open': low_open}, index=close_open.index).to_json(orient='table')
+
+        data = json.loads(data)
+        self._set_headers()
+        # self.wfile.write(json.dumps(json.load(open('../../data/sbin-08-22.json', 'r'))).encode())
+        self.wfile.write(json.dumps(data).encode())
 
     def buyStockHandler(self, body):
         self._set_headers()

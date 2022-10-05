@@ -19,6 +19,7 @@ mutex = Lock()
 historical = None
 db = None
 clients = {}
+stream_sleep_sec = 1
 '''
 key -> client id
 val -> (client, properties)
@@ -34,6 +35,7 @@ properties:
 def new_client(client, server):
 	global clients
 
+
 def client_left(client, server):
 	global clients
 	mutex.acquire()
@@ -42,13 +44,17 @@ def client_left(client, server):
 	finally:
 		mutex.release()
 
+
 def read(client, server, message):
-	global clients
-	print(json.loads(message))
+	global clients, stream_sleep_sec
+	data = json.loads(message)
+	if 'stream_sleep_sec' in data:
+		stream_sleep_sec = data['stream_sleep_sec']
+		return
+
 	mutex.acquire()
 	try:
-		clients[client['id']] = (client, json.loads(message))
-		print(clients)
+		clients[client['id']] = (client, data)
 	finally:
 		mutex.release()
 
@@ -72,6 +78,7 @@ def stream_to_clients(server, data):
 	finally:
 		mutex.release()
 
+
 def all_client_ready():
 	global clients
 	for id, val in clients.items():
@@ -79,11 +86,13 @@ def all_client_ready():
 			return False
 	return len(clients) > 0
 
+
 def stream(server):
-	global clients
-	reliance, nse, ashokley = historical.get('reliance'), historical.get('nse'), historical.get('ashokley')
+	global clients, stream_sleep_sec
+	reliance, nse, ashokley = historical.get(
+		'reliance'), historical.get('nse'), historical.get('ashokley')
 	while True:
-		sleep(1)
+		sleep(stream_sleep_sec)
 		if not all_client_ready():
 			continue
 
@@ -91,8 +100,7 @@ def stream(server):
 		ind = nse.ge_index(startTime)
 		nse_open_price = nse.df.Open[nse.open_index(ind)]
 		nse_current_price = nse.df.Close[ind]
-		nse_change = round(get_change(
-			current=nse_current_price, previous=nse_open_price), 2)
+		nse_change = round(get_change(nse_current_price, nse_open_price), 2)
 
 		start = nse.df.index[ind].tz_localize('Asia/Kolkata')
 		o, h, l, c, v = nse.df.iloc[ind]
