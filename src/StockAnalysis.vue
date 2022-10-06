@@ -87,7 +87,7 @@ export default {
     data() {
         return {
             tf: "1D",
-            columns: ['index', 'close_open', 'high_low', 'high_open', 'low_open'],
+            columns: ['index', 'close_open', 'high_low', 'high_open', 'low_open', 'volume'],
             rows: [],
             symbol_model: 'ashokley',
             tfs: { '1m': {}, '5m': {}, '10m': {}, '15m': {}, '30m': {}, '1H': {}, '2H': {}, '3H': {}, '1D': {} },

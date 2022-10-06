@@ -62,9 +62,10 @@ class Server(BaseHTTPRequestHandler):
         close_open = get_change(df.Close, df.Open).round(2)
         high_low = get_change(df.High, df.Low).round(2)
         high_open = get_change(df.High, df.Open).round(2)
-        low_open = get_change(df.Open, df.Low).round(2)
+        low_open = get_change(df.Low, df.Open).round(2)
+        volume = (df.Volume/10000000).round(2)
         data = pd.DataFrame({'high_low': high_low.values, 'close_open': close_open, 'high_open': high_open,
-                            'low_open': low_open}, index=close_open.index).to_json(orient='table')
+                            'low_open': low_open, 'volume': volume}, index=close_open.index).to_json(orient='table')
 
         data = json.loads(data)
         self._set_headers()
