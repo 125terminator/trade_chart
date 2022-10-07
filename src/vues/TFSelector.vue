@@ -42,6 +42,7 @@ export default {
         },
         on_click(tf, i) {
             this.tf = String(tf)
+            this.$parent.tf = this.tf
             this.selected = i
             this.$emit('selected', this.tf_to_ms())
         }

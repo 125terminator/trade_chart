@@ -22,13 +22,15 @@
             </div>
         </div>
         <div>
-            <span>Stream sleep time</span> | 
-            <input v-model="stream_sleep_sec" type="range" min="1" max="20"/>
+            <span>Stream sleep time</span> |
+            <input v-model="stream_sleep_sec" type="range" min="1" max="20" />
             <span>{{ stream_sleep_sec/10 }} seconds</span>
         </div>
         <div>
-        <button @click="on_pause_resume"> {{pause === false ? "PAUSE": "RESUME"}}</button>
-    </div>
+            <span><button @click="on_pause_resume"> {{pause === false ? "PAUSE": "RESUME"}}</button></span>
+            <span><input v-model="goto_date" placeholder="GotoDate" /></span>
+            <span><button @click="on_goto_date"> GOTO </button></span>
+        </div>
         <div class="container container-holdings">
             <table id="thirdTable">
                 <thead>
@@ -83,10 +85,23 @@ export default {
             this.on_symbol_change()
         },
         stream_sleep_sec(o, n) {
-            this.stream.send({'stream_sleep_sec': this.stream_sleep_sec/10})
+            this.stream.send({ 'stream_sleep_sec': this.stream_sleep_sec / 10 })
         }
     },
     methods: {
+        on_goto_date() {
+            // let tf_ms = Utils.tf_to_ms(this.tf)
+            // let candle_len = this.chart.data.chart.data.length
+            let goto_ms = parseFloat(moment(this.goto_date).format('X')) * 1000
+            // console.log((this.today - goto_ms))
+            var r_range, r_ms
+            [r_range, r_ms] = Utils.lower_bound(this.chart.data.chart.data, goto_ms + Utils.tf_to_ms('1D'))
+            this.$refs.tvjs.goto(r_range)
+            let l_ms = r_ms - Utils.tf_to_ms('1D')
+            this.$refs.tvjs.setRange(l_ms, r_ms)
+            // console.log(x)
+            // console.log(Utils.tf_to_ms('1D'))
+        },
         on_symbol_change() {
             this.symbol = this.symbol_model
             this.on_selected()
@@ -105,6 +120,7 @@ export default {
             }
             this.getState().then(state => {
                 let now_ms = parseFloat(moment(state.now).format('X')) * 1000
+                this.today = now_ms
                 this.load_chunk([now_ms, now_ms], tf).then(data => {
                     this.chart = new DataCube({
                         chart: {
@@ -212,16 +228,10 @@ export default {
             this.chart.update({
                 candle: trade,
             })
-            this.chart.update({
-                t: trade[0] + 60 * 1000,     // Exchange time (optional)
-                price: trade[1],   // Trade price
-                volume: 0,  // Trade amount
-            })
             let d = window.tv.getRange()[1] - trade[0]
-            // console.log(d)
-            // console.log(trade[0])
             if (d > -600000) {
-                window.tv.goto(trade[0] + 60 * 10000)
+                let candle_len = this.chart.data.chart.data.length
+                this.$refs.tvjs.goto(candle_len + 2)
             }
 
 
@@ -243,7 +253,7 @@ export default {
                     [bp, sp] = [sp, bp]
                     qty = -qty
                 }
-                
+
                 let brokerage = Utils.cal_intra(bp, sp, qty)
                 holdings[i][this.columns[4]] = brokerage[0]
                 holdings[i][this.columns[6]] = brokerage[1]
@@ -293,6 +303,8 @@ export default {
             ],
             columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.', 'Brokerage'],
             stream_sleep_sec: 1,
+            goto_date: "",
+            today: "",
         }
     },
 }

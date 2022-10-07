@@ -1,3 +1,33 @@
+export function lower_bound(arr, x) {
+    var l = 0, r = arr.length, m, near_val=arr[0][0];
+    while (l < r) {
+        m = parseInt((l + r) / 2);
+        if (arr[m][0] == x) {
+            return [m, arr[m][0]]
+        }
+        if (arr[m][0] < x) {
+            near_val = arr[m][0];
+            l = m + 1;
+        } else {
+            r = m;
+        }
+    }
+    return [l, near_val];
+}
+
+export function tf_to_ms(tf) {
+    let multiply_factor = 1
+    if (tf.includes('m')) {
+        multiply_factor = 60000
+    }
+    else if (tf.includes('H')) {
+        multiply_factor = 3600000
+    }
+    else if(tf.includes('D')) {
+        multiply_factor = 86400000
+    }
+    return parseInt(tf)*multiply_factor
+}
 
 export function cal_intra(bp, sp, qty){
     bp = parseFloat(bp.toFixed(2));
