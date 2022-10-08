@@ -8,6 +8,8 @@
                 <option value="ashokley">Asholkley</option>
                 <option value="reliance">Reliance</option>
                 <option value="nse">NSE</option>
+                <option value="ibul">IBUL</option>
+                <option value="irctc">IRCTC</option>
             </select>
         </div>
         <div>
@@ -18,12 +20,13 @@
             <table id="thirdTable">
                 <thead>
                     <tr>
-                        <th v-for="col in columns" v-on:click="sortTable(col)">{{col}}</th>
+                        <th v-for="col in columns" v-on:click="sumTbl(col)">{{col}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="row in rows">
-                        <td v-for="col in columns" v-bind:style="col === 'index' ? {color: '#000'} : row[col] < 0 ? {color: '#f00'} : {color: '#008000'}">
+                        <td v-for="col in columns" v-on:click="copyTime(row)"
+                            v-bind:style="col === 'index' ? {color: '#000'} : row[col] < 0 ? {color: '#f00'} : {color: '#008000'}">
                             {{row[col]}}</td>
                     </tr>
                 </tbody>
@@ -34,9 +37,10 @@
 
 <script>
 import moment from 'moment'
+import TfSelector from './vues/TFSelector.vue'
 
 import * as Const from './js/const.js'
-import TfSelector from './vues/TFSelector.vue'
+import * as Utils from './js/utils.js'
 
 export default {
     name: "StockAnalysis",
@@ -52,11 +56,15 @@ export default {
     methods: {
         refresh() {
         },
+        copyTime(row) {
+            Utils.copyToClipboard(row.index)
+        },
         on_selected(tf) {
             this.getState().then(state => {
                 let now_ms = parseFloat(moment(state.now).format('X')) * 1000
                 this.load_history(now_ms, tf).then(data => {
                     this.rows = data.data
+                    window.df = this.rows
                 })
             })
         },
@@ -76,12 +84,12 @@ export default {
                 multiply_factor = 6000
             }
             else if (this.tf.includes('H')) {
-                multiply_factor = 6000*60
+                multiply_factor = 6000 * 60
             }
-            else if(this.tf.includes('D')) {
-                multiply_factor = 6000*60*24
+            else if (this.tf.includes('D')) {
+                multiply_factor = 6000 * 60 * 24
             }
-            return parseInt(this.tf)*multiply_factor
+            return parseInt(this.tf) * multiply_factor
         }
     },
     data() {

@@ -7,6 +7,8 @@
                 <option value="ashokley">Asholkley</option>
                 <option value="reliance">Reliance</option>
                 <option value="nse">NSE</option>
+                <option value="ibul">IBUL</option>
+                <option value="irctc">IRCTC</option>
             </select>
             <button @click="on_symbol_change">GET</button>
         </div>
@@ -27,9 +29,14 @@
             <span>{{ stream_sleep_sec/10 }} seconds</span>
         </div>
         <div>
-            <span><button @click="on_pause_resume"> {{pause === false ? "PAUSE": "RESUME"}}</button></span>
+            <span><button class="button" @click="on_pause_resume"> {{pause === false ? "PAUSE":
+            "RESUME"}}</button></span>
             <span><input v-model="goto_date" placeholder="GotoDate" /></span>
-            <span><button @click="on_goto_date"> GOTO </button></span>
+            <span><button class="button" @click="on_goto_date"> GOTO </button></span>
+            <span><button class="button" @click="on_goto_prev_day">
+                    < </button></span>
+            <span><button class="button" @click="on_goto_today"> TODAY </button></span>
+            <span><button class="button" @click="on_goto_next_day"> > </button></span>
         </div>
         <div class="container container-holdings">
             <table id="thirdTable">
@@ -89,18 +96,48 @@ export default {
         }
     },
     methods: {
-        on_goto_date() {
-            // let tf_ms = Utils.tf_to_ms(this.tf)
-            // let candle_len = this.chart.data.chart.data.length
-            let goto_ms = parseFloat(moment(this.goto_date).format('X')) * 1000
-            // console.log((this.today - goto_ms))
+        on_goto_prev_day() {
+            let prev_view_ms = this.view_ms
+            for (let i = 1; i <= 2; i++) {
+                this.on_goto_date(this.view_ms - Utils.tf_to_ms(`${i}D`))
+                if (this.view_ms !== prev_view_ms) {
+                    break
+                }
+            }
+        },
+        on_goto_next_day() {
+            let prev_view_ms = this.view_ms
+            for (let i = 1; i <= 2; i++) {
+                this.on_goto_date(Math.min(this.view_ms + Utils.tf_to_ms(`${i}D`), this.today_ms))
+                if (this.view_ms !== prev_view_ms) {
+                    break
+                }
+            }
+        },
+        on_goto_today() {
+            this.on_goto_date(this.today_ms)
+        },
+        on_goto_date(date_ms) {
+            var goto_ms = 0
+            if (typeof date_ms === 'number') {
+                goto_ms = date_ms
+            } else {
+                if (this.goto_date === "") {
+                    goto_ms = this.today_ms
+                } else {
+                    goto_ms = parseFloat(moment(this.goto_date).format('X')) * 1000
+                }
+            }
+            // console.log(this.view_ms, goto_ms)
+            // this.view_ms = goto_ms
+            // let goto_ms = parseFloat(moment(date).format('X')) * 1000
             var r_range, r_ms
             [r_range, r_ms] = Utils.lower_bound(this.chart.data.chart.data, goto_ms + Utils.tf_to_ms('1D'))
-            this.$refs.tvjs.goto(r_range)
+            // this.$refs.tvjs.goto(r_range)
+            this.view_ms = r_ms
+            // console.log(r_range, r_ms)
             let l_ms = r_ms - Utils.tf_to_ms('1D')
             this.$refs.tvjs.setRange(l_ms, r_ms)
-            // console.log(x)
-            // console.log(Utils.tf_to_ms('1D'))
         },
         on_symbol_change() {
             this.symbol = this.symbol_model
@@ -120,7 +157,7 @@ export default {
             }
             this.getState().then(state => {
                 let now_ms = parseFloat(moment(state.now).format('X')) * 1000
-                this.today = now_ms
+                this.today_ms = now_ms
                 this.load_chunk([now_ms, now_ms], tf).then(data => {
                     this.chart = new DataCube({
                         chart: {
@@ -304,7 +341,8 @@ export default {
             columns: ['Instrument', 'Qty.', 'Avg.', 'Cur. val', 'P&L', 'Net chg.', 'Brokerage'],
             stream_sleep_sec: 1,
             goto_date: "",
-            today: "",
+            today_ms: "",
+            view_ms: "",
         }
     },
 }
@@ -360,37 +398,11 @@ tr:nth-child(even) {
     color: #008000;
 }
 
-/* table {
-  font-family: 'Open Sans', sans-serif;
-  width: 750px;
-  border-collapse: collapse;
-  border: 3px solid #44475C;
-  margin: 10px 10px 0 10px;
+.button {
+    padding-right: 10px;
+    padding-left: 10px;
+    margin: 4px 4px;
 }
-
-table th {
-  text-transform: uppercase;
-  text-align: left;
-  background: #44475C;
-  color: #FFF;
-  cursor: pointer;
-  padding: 8px;
-  min-width: 30px;
-}
-table th:hover {
-        background: #717699;
-      }
-table td {
-  text-align: left;
-  padding: 8px;
-  border-right: 2px solid #7D82A8;
-}
-table td:last-child {
-  border-right: none;
-}
-table tbody tr:nth-child(2n) td {
-  background: #D4D8F9;
-} */
 </style>
 
 <!-- https://github.com/tvjsx/'trading-vue-js'/blob/e881bdb5c3ec3b890d21e3059cb6b3ef85a47432/docs/guide/OVERLAYS.md -->

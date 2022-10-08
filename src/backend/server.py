@@ -16,7 +16,7 @@ class Historical:
 
     def get(self, symbol):
         if symbol not in self.ohlc:
-            file = f'../../data/{symbol}.csv'
+            file = f'../../data/stock/{symbol}.csv'
             if not os.path.isfile(file):
                 return None
             data = OHLC(file, clean=False)
