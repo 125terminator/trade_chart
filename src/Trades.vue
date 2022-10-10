@@ -1,8 +1,8 @@
 <template>
     <div class="flex">
         <div>
-        <button @click="refresh">Refresh</button>
-    </div>
+            <button @click="refresh">Refresh</button>
+        </div>
         <div class="container container-holdings">
             <table id="thirdTable">
                 <thead>

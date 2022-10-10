@@ -11,12 +11,13 @@ from const import *
 
 mutex = Lock()
 
+
 class DB(ABC):
     def __init__(self, filename):
         self.filename = filename
         self.data = self.read()
         # shutil.copyfile(filename, filename + 'copy')
-        
+
     def write(self, data):
         mutex.acquire()
         try:
@@ -45,7 +46,7 @@ class Date(DB):
             self.data['now'] = data
         finally:
             mutex.release()
-    
+
     def get(self):
         mutex.acquire()
         try:
@@ -57,13 +58,15 @@ class Date(DB):
     def now(self):
         return self.get()['now']
 
+
 class User(DB):
     def __init__(self, date_db):
         super().__init__('../../data/user.json')
         self.data = {'buy': [], 'sell': []}
-        self.bought = {'cnc': Stock(), 'intraday': Stock(intraday=True)} 
+        self.bought = {'cnc': Stock(), 'intraday': Stock(intraday=True)}
         # cnc is not allowed for short selling
-        self.sold = {'cnc': Stock(sold=True), 'intraday': Stock(sold=True, intraday=True)}
+        self.sold = {'cnc': Stock(sold=True), 'intraday': Stock(
+            sold=True, intraday=True)}
         # trades = ['buy_price', 'sell_price', 'qty', 'type', 'p&l', 'brokerage']
         self.trades = []
         self.pAndL = 0
@@ -77,7 +80,7 @@ class User(DB):
     def buy(self, data):
         self.data['buy'].append(data)
 
-        op = 'intraday' if data['intraday'] else 'cnc'     
+        op = 'intraday' if data['intraday'] else 'cnc'
         buy_stock = Stock(price=data['price'], qty=data['qty'])
 
         pAndL, trade = self.sold[op].square_off(buy_stock)
@@ -91,20 +94,19 @@ class User(DB):
         #     self.bought[op].avg(buy_stock)
         # elif op == 'cnc':
         #     self.bought[op].avg(buy_stock)
-    
+
     def sell(self, data):
         self.data['sell'].append(data)
 
         op = 'intraday' if data['intraday'] else 'cnc'
         sell_stock = Stock(price=data['price'], qty=data['qty'], sold=True)
-        
+
         if op == 'cnc' and sell_stock.qty > self.bought[op].qty:
-            return # cnc short selling not allowed
-            
+            return  # cnc short selling not allowed
+
         pAndL, trade = self.bought[op].square_off(sell_stock)
         self.pAndL += pAndL
         self.sold[op].avg(sell_stock)
-
 
         self.add_trades(trade)
         # if op == 'intraday':
@@ -114,7 +116,7 @@ class User(DB):
         #     if sell_stock.qty <= self.bought[op].qty:
         #         self.pAndL += self.bought[op].square_off(sell_stock)
         #     else:
-                # pass # cnc short selling not allowed
+        # pass # cnc short selling not allowed
 
     @property
     def transactions(self):
@@ -126,14 +128,15 @@ class User(DB):
                 rt.append(row)
         return rt
 
+
 if __name__ == "__main__":
     o = User()
     # o.buy({"price": 2,"qty": 9,"intraday": False})
-    o.buy({"price": 1,"qty": 20,"intraday": True})
+    o.buy({"price": 1, "qty": 20, "intraday": True})
     # print(o.bought)
 
-    o.sell({"price": 2,"qty": 10,"intraday": True})
-    o.sell({"price": 3,"qty": 20,"intraday": True})
+    o.sell({"price": 2, "qty": 10, "intraday": True})
+    o.sell({"price": 3, "qty": 20, "intraday": True})
     print(o.sold)
     print(o.bought)
     print(o.pAndL)

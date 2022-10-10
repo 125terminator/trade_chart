@@ -1,15 +1,14 @@
 <template>
-<!-- Timeframe Selector -->
-<div class="tf-selector">
-    <span class="timeframe" :key="i" v-for="(tf, i) in this.timeframes"
-        v-on:click="on_click(tf, i)"
-        v-bind:style= "selected === i ? {color: '#f00'} : {color: '#000'}">
-        {{tf}}
-    </span>
-    <!-- <select v-model="selected">
+    <!-- Timeframe Selector -->
+    <div class="tf-selector">
+        <span class="timeframe" :key="i" v-for="(tf, i) in this.timeframes" v-on:click="on_click(tf, i)"
+            v-bind:style="selected === i ? {color: '#f00'} : {color: '#000'}">
+            {{tf}}
+        </span>
+        <!-- <select v-model="selected">
         <option v-for="(tf) in this.timeframes">{{tf}}</option>
     </select> -->
-</div>
+    </div>
 </template>
 
 <script>
@@ -33,12 +32,12 @@ export default {
                 multiply_factor = 6000
             }
             else if (this.tf.includes('H')) {
-                multiply_factor = 6000*60
+                multiply_factor = 6000 * 60
             }
-            else if(this.tf.includes('D')) {
-                multiply_factor = 6000*60*24
+            else if (this.tf.includes('D')) {
+                multiply_factor = 6000 * 60 * 24
             }
-            return parseInt(this.tf)*multiply_factor
+            return parseInt(this.tf) * multiply_factor
         },
         on_click(tf, i) {
             this.tf = String(tf)
@@ -51,8 +50,8 @@ export default {
         return {
             tf: this.timeframe,
             selected: 0,
-            myStyle:{
-            backgroundColor:"#ffffff" 
+            myStyle: {
+                backgroundColor: "#ffffff"
             }
         }
     }
@@ -64,15 +63,16 @@ export default {
     position: absolute;
     top: 15px;
     right: 80px;
-    font: 16px -apple-system,BlinkMacSystemFont,
-        Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,
-        Fira Sans,Droid Sans,Helvetica Neue,
+    font: 16px -apple-system, BlinkMacSystemFont,
+        Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell,
+        Fira Sans, Droid Sans, Helvetica Neue,
         sans-serif;
     background: #fdfdff;
     color: #ccc;
     padding: 8px;
     border-radius: 3px;
 }
+
 .timeframe {
     margin-right: 5px;
     user-select: none;
@@ -81,6 +81,7 @@ export default {
     max-width: 10px;
     color: #fdfdff;
 }
+
 .timeframe:hover {
     color: #fff;
 }

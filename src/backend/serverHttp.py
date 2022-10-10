@@ -42,7 +42,7 @@ class Server(BaseHTTPRequestHandler):
     def tradesHandler(self):
         self._set_headers()
         self.wfile.write(json.dumps(db['user'].trades).encode())
-    
+
     def analysisHandler(self, params):
         symbol = params['stock'][0]
         ohlc = historical.get(symbol)

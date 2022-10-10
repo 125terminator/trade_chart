@@ -10,6 +10,8 @@ from DB import User, Date
 
 # reliance = OHLC('../../data/reliance.csv', clean=False)
 # nse = OHLC('../../data/nse.csv', clean=False)
+
+
 class Historical:
     def __init__(self):
         self.ohlc = {}
@@ -23,6 +25,7 @@ class Historical:
             self.ohlc.update({symbol: data})
             return data
         return self.ohlc[symbol]
+
 
 historical = Historical()
 date_db = Date()

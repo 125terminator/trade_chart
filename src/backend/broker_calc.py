@@ -1,5 +1,6 @@
 import math
 
+
 def jsround(value):
     x = math.floor(value)
     if (value - x) < .50:
@@ -7,8 +8,10 @@ def jsround(value):
     else:
         return math.ceil(value)
 
+
 def to_fixed(a, fix):
     return round(a, fix)
+
 
 def get_net_profit(buy_price, sell_price, qty, delivery=False):
     brokerage_buy = to_fixed(min((buy_price * qty * 0.0003), 20), 2)
@@ -32,7 +35,8 @@ def get_net_profit(buy_price, sell_price, qty, delivery=False):
 
     sebi_charges = to_fixed(turnover*0.000001, 2)
 
-    total_tax = to_fixed(brokerage + stt_total + exc_trans_charge + cc + stax + sebi_charges + stamp_charges, 2)
+    total_tax = to_fixed(brokerage + stt_total + exc_trans_charge +
+                         cc + stax + sebi_charges + stamp_charges, 2)
 
     breakeven = 0
     if qty > 0:
@@ -44,6 +48,7 @@ def get_net_profit(buy_price, sell_price, qty, delivery=False):
     net_profit = to_fixed(((sell_price - buy_price) * qty) - total_tax, 2)
 
     return net_profit, total_tax
+
 
 if __name__ == "__main__":
     buy_price = float(input())

@@ -3,8 +3,10 @@ import numpy as np
 from dateutil import parser
 from OHLC import OHLC
 
+
 def gt(df, start):
     return df.index.searchsorted(start)
+
 
 def open_index(df, start):
     ind = df.index.searchsorted(start)
@@ -13,6 +15,7 @@ def open_index(df, start):
             return df.index[ind]
         ind -= 1
     return ind
+
 
 nse = OHLC('../../data/nse.csv', clean=False)
 

@@ -3,9 +3,10 @@ from collections import OrderedDict
 import pandas as pd
 import numpy as np
 
+
 class OHLC:
     def __init__(self, filename, clean=True):
-        necessary_columns = ['Date','Open','High','Low','Close','Volume']
+        necessary_columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
         # Never input df data which is daily, interval should be in minutes, hours
         # nrows=10000
         self.df = pd.read_csv(filename, usecols=necessary_columns)
@@ -31,9 +32,9 @@ class OHLC:
             # Assert no extra wrong rows remain now after cleanup
             assert self.eachDayRows*self.days == self.df.shape[0]
 
-        self.df.set_index('Date', inplace=True) 
+        self.df.set_index('Date', inplace=True)
         # self.df.sort_index(inplace=True)
-        
+
         # Remove timezone from timestamp
         self.df.index = [i.replace(tzinfo=None) for i in self.df.index]
 
@@ -69,7 +70,7 @@ class OHLC:
         returns index whose timeindex is greater than equal to start
         '''
         return self.df.index.searchsorted(start)
-    
+
     def open_index(self, ind):
         '''
         returns index of first tick for the given start day
@@ -86,16 +87,17 @@ class OHLC:
             j = i+1
             dayCnt += 1
             while j < self.df.shape[0] and self.df.Date[i].day == self.df.Date[j].day:
-                interval = (self.df.Date[j] - self.df.Date[j-1]).total_seconds()
+                interval = (self.df.Date[j] -
+                            self.df.Date[j-1]).total_seconds()
                 if interval in mp:
-                    mp[interval]+=1
+                    mp[interval] += 1
                 else:
-                    mp[interval]=1
-                j+=1
+                    mp[interval] = 1
+                j += 1
             i = j
 
         # Assert only one type of interval should exist
-        assert(len(mp)) == 1
+        assert (len(mp)) == 1
 
         # Dividing the interval by 60 to convert seconds to minutes
         self.interval = list(mp.keys())[0]/60
@@ -103,7 +105,7 @@ class OHLC:
 
     def cleanDf(self):
         def allIntervals():
-            # Return a map with 
+            # Return a map with
             # keys -> number of intervals in a day
             # values -> number of days with this interval
             mp = dict()
@@ -111,28 +113,28 @@ class OHLC:
             while i < self.df.shape[0]:
                 j = i
                 while j < self.df.shape[0] and self.df.Date[i].day == self.df.Date[j].day:
-                    j+=1
+                    j += 1
                 if j-i in mp:
                     mp[j-i].append((i, j))
                 else:
-                    mp[j-i]=[(i, j)]
+                    mp[j-i] = [(i, j)]
                 i = j
             return mp
-        
+
         mp = allIntervals()
 
         # Drop data which is not a most occurring number of interval in a day
         maxlen = 0
         for i in mp.values():
             maxlen = max(maxlen, len(i))
-        
+
         # Store to be deleted indices
         rmIndx = []
         for i in mp.values():
             if len(i) < maxlen:
                 for pair in i:
                     rmIndx.extend(np.arange(pair[0], pair[1]))
-        
+
         self.df.drop(rmIndx, axis=0, inplace=True)
         self.df.index = np.arange(0, self.df.shape[0])
 

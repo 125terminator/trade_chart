@@ -69,11 +69,11 @@ export default {
         },
         colorVolUpLegend() {
             return this.sett.colorVolUpLegend ||
-            this.$props.colors.candleUp
+                this.$props.colors.candleUp
         },
         colorVolDwLegend() {
             return this.sett.colorVolDwLegend ||
-            this.$props.colors.candleDw
+                this.$props.colors.candleDw
         },
         volscale() {
             return 0.85
